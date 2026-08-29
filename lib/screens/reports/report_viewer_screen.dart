@@ -54,23 +54,28 @@ class ReportViewerScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'PRECISIONCARE DIAGNOSTIC CENTRE',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w800,
-                              color: AppColors.primary,
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'PRECISIONCARE DIAGNOSTIC CENTRE',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          Text(
-                            'NABL & ICMR Accredited Lab',
-                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
-                          ),
-                        ],
+                            Text(
+                              'NABL & ICMR Accredited Lab (Pune)',
+                              style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                            ),
+                          ],
+                        ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -92,23 +97,27 @@ class ReportViewerScreen extends StatelessWidget {
 
                   // Patient & Test Meta
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _infoItem('Patient Name', report.patientName),
-                          const SizedBox(height: 6),
-                          _infoItem('Age / Sex', '${report.patientAge} Yrs / ${report.patientSex}'),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _infoItem('Patient Name', report.patientName),
+                            const SizedBox(height: 6),
+                            _infoItem('Age / Sex', '${report.patientAge} Yrs / ${report.patientSex}'),
+                          ],
+                        ),
                       ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _infoItem('Report ID', report.id),
-                          const SizedBox(height: 6),
-                          _infoItem('Test Date', DateFormatter.formatDate(report.testDate)),
-                        ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _infoItem('Report ID', report.id),
+                            const SizedBox(height: 6),
+                            _infoItem('Test Date', DateFormatter.formatDate(report.testDate)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -128,7 +137,103 @@ class ReportViewerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Parameters Table
+            // 1. Attached Diagnostic Report Scan / Photo (Prominently Rendered)
+            if (report.pdfDownloadUrl != null && report.pdfDownloadUrl!.isNotEmpty) ...[
+              Container(
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFF86EFAC)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Expanded(
+                          child: Row(
+                            children: [
+                              Icon(Icons.verified_user_rounded, size: 18, color: Color(0xFF16A34A)),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Uploaded Diagnostic Lab Report / Film',
+                                  style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: Color(0xFF15803D)),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text('Tap to zoom', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Color(0xFF15803D))),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => Dialog(
+                            backgroundColor: Colors.black,
+                            insetPadding: const EdgeInsets.all(8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            child: Stack(
+                              children: [
+                                Center(
+                                  child: InteractiveViewer(
+                                    maxScale: 4.0,
+                                    child: AppImageView(imageUrl: report.pdfDownloadUrl!, fit: BoxFit.contain),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: 12,
+                                  right: 12,
+                                  child: CircleAvatar(
+                                    backgroundColor: Colors.black54,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close, color: Colors.white),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          constraints: const BoxConstraints(maxHeight: 380),
+                          width: double.infinity,
+                          child: AppImageView(imageUrl: report.pdfDownloadUrl!, fit: BoxFit.contain),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
+            // 2. Parameters Table (If parameters entered)
             if (report.parameters.isNotEmpty) ...[
               Container(
                 decoration: BoxDecoration(
@@ -199,13 +304,18 @@ class ReportViewerScreen extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: Row(
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                      '${p.value} ${p.unit}',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        color: p.isAbnormal ? AppColors.error : AppColors.textPrimary,
+                                    Flexible(
+                                      child: Text(
+                                        '${p.value} ${p.unit}',
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: p.isAbnormal ? AppColors.error : AppColors.textPrimary,
+                                        ),
                                       ),
                                     ),
                                     if (p.isAbnormal) ...[
@@ -233,44 +343,7 @@ class ReportViewerScreen extends StatelessWidget {
               const SizedBox(height: 16),
             ],
 
-            // Attached Diagnostic Report Scan / Photo
-            if (report.pdfDownloadUrl != null && report.pdfDownloadUrl!.isNotEmpty) ...[
-              Container(
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.border),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.image_outlined, size: 18, color: AppColors.primary),
-                        SizedBox(width: 8),
-                        Text('Attached Diagnostic Lab Report / Film', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: AppImageView(imageUrl: report.pdfDownloadUrl!),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Clinical Summary Card
+            // 3. Clinical Summary Card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -296,7 +369,7 @@ class ReportViewerScreen extends StatelessWidget {
                     report.summary,
                     style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, height: 1.4),
                   ),
-                  if (report.doctorNotes != null) ...[
+                  if (report.doctorNotes != null && report.doctorNotes!.isNotEmpty) ...[
                     const SizedBox(height: 12),
                     Container(
                       padding: const EdgeInsets.all(10),
@@ -324,7 +397,7 @@ class ReportViewerScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
 
-            // Pathologist / Doctor Signature Card
+            // 4. Pathologist / Doctor Signature Card
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -333,38 +406,45 @@ class ReportViewerScreen extends StatelessWidget {
                 border: Border.all(color: AppColors.border),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'NABL QA Certificate:',
-                        style: TextStyle(fontSize: 11, color: AppColors.textMuted),
-                      ),
-                      Text(
-                        'QA-2026-9812-NABL',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text(
-                        'Digitally Signed',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontStyle: FontStyle.italic,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'NABL QA Certificate:',
+                          style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                         ),
-                      ),
-                      Text(
-                        report.pathologistName,
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
-                      ),
-                    ],
+                        Text(
+                          'QA-2026-9812-NABL',
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        const Text(
+                          'Digitally Signed',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        Text(
+                          report.pathologistName,
+                          textAlign: TextAlign.end,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -420,6 +500,8 @@ class ReportViewerScreen extends StatelessWidget {
         ),
         Text(
           value,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ],

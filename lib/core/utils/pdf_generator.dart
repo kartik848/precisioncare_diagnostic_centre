@@ -21,32 +21,7 @@ class PdfReportGenerator {
       }
     }
 
-    // If an uploaded report scan exists from Admin, add the full-size report as Page 1 or 2
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(32),
-        header: (context) => _buildHeader(),
-        footer: (context) => _buildFooter(context),
-        build: (context) => [
-          pw.SizedBox(height: 10),
-          _buildPatientInfo(report),
-          pw.Divider(thickness: 1, color: PdfColors.grey400),
-          pw.SizedBox(height: 10),
-          _buildTestTitle(report),
-          pw.SizedBox(height: 10),
-          if (report.parameters.isNotEmpty) ...[
-            _buildParametersTable(report),
-            pw.SizedBox(height: 14),
-          ],
-          _buildClinicalInterpretation(report),
-          pw.SizedBox(height: 20),
-          _buildDoctorSignature(report),
-        ],
-      ),
-    );
-
-    // If a scanned film / report image exists, add it with full resolution
+    // If an uploaded report scan exists from Admin, add it directly as the primary official report
     if (scanImage != null) {
       pdf.addPage(
         pw.Page(
@@ -55,33 +30,66 @@ class PdfReportGenerator {
           build: (context) => pw.Column(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Text(
-                    'ATTACHED DIAGNOSTIC LAB SCAN / SPECIMEN FILM',
-                    style: pw.TextStyle(
-                      fontSize: 10,
-                      fontWeight: pw.FontWeight.bold,
-                      color: const PdfColor.fromInt(0xFF0E8388),
-                    ),
-                  ),
-                  pw.Text(
-                    'Report ID: ${report.id}',
-                    style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
-                  ),
-                ],
-              ),
+              _buildHeader(),
               pw.SizedBox(height: 6),
-              pw.Divider(thickness: 0.8, color: PdfColors.grey400),
+              _buildPatientInfo(report),
+              pw.SizedBox(height: 6),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFFDCFCE7)),
+                child: pw.Row(
+                  mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pw.Text(
+                      'OFFICIAL DIAGNOSTIC LAB REPORT / SCAN',
+                      style: pw.TextStyle(
+                        fontSize: 9,
+                        fontWeight: pw.FontWeight.bold,
+                        color: const PdfColor.fromInt(0xFF15803D),
+                      ),
+                    ),
+                    pw.Text(
+                      'Verified by ${report.pathologistName}',
+                      style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey700),
+                    ),
+                  ],
+                ),
+              ),
               pw.SizedBox(height: 6),
               pw.Expanded(
                 child: pw.Center(
                   child: pw.Image(scanImage!, fit: pw.BoxFit.contain),
                 ),
               ),
+              pw.SizedBox(height: 6),
+              _buildDoctorSignature(report),
             ],
           ),
+        ),
+      );
+    } else {
+      // If no image uploaded, generate structured digital parameter report
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(32),
+          header: (context) => _buildHeader(),
+          footer: (context) => _buildFooter(context),
+          build: (context) => [
+            pw.SizedBox(height: 10),
+            _buildPatientInfo(report),
+            pw.Divider(thickness: 1, color: PdfColors.grey400),
+            pw.SizedBox(height: 10),
+            _buildTestTitle(report),
+            pw.SizedBox(height: 10),
+            if (report.parameters.isNotEmpty) ...[
+              _buildParametersTable(report),
+              pw.SizedBox(height: 14),
+            ],
+            _buildClinicalInterpretation(report),
+            pw.SizedBox(height: 20),
+            _buildDoctorSignature(report),
+          ],
         ),
       );
     }
