@@ -10,7 +10,6 @@ import '../../models/user_profile.dart';
 import '../../providers/admin_provider.dart';
 import '../../widgets/app_image_view.dart';
 import '../../widgets/empty_state.dart';
-import '../home/main_navigation_screen.dart';
 import 'widgets/add_staff_dialog.dart';
 import 'widgets/add_test_dialog.dart';
 import 'widgets/booking_action_dialog.dart';
@@ -151,15 +150,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   icon: const Icon(Icons.notification_add_rounded, color: AppColors.accent, size: 20),
                   tooltip: 'Push Patient Reminder',
                   onPressed: () => _openSendReminderDialog(),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.phone_android_rounded, color: Colors.white70, size: 20),
-                  tooltip: 'Open Patient App',
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-                    );
-                  },
                 ),
               ],
             ),
@@ -339,40 +329,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               decoration: const BoxDecoration(
                 border: Border(top: BorderSide(color: Color(0xFF1E293B))),
               ),
-              child: Column(
+              child: const Row(
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-                      );
-                    },
-                    icon: const Icon(Icons.phone_android_rounded, size: 16, color: Colors.white),
-                    label: const Text('Open Patient App', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      minimumSize: const Size(double.infinity, 42),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
+                  CircleAvatar(
+                    radius: 12,
+                    backgroundColor: AppColors.primaryLight,
+                    child: Icon(Icons.shield_rounded, size: 14, color: AppColors.primary),
                   ),
-                  const SizedBox(height: 10),
-                  const Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 12,
-                        backgroundColor: AppColors.primaryLight,
-                        child: Icon(Icons.shield_rounded, size: 14, color: AppColors.primary),
-                      ),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Administrator (Active Session)',
-                          style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.w600),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Administrator (Active Session)',
+                      style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.w600),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
