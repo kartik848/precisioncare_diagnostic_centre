@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "59309205465",
+    "project_id": "precision-care-2ab84",
+    "storage_bucket": "precision-care-2ab84.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:59309205465:android:05b49fbb7688ff96ed9bc8",
+        "android_client_info": {
+          "package_name": "com.precisioncare.precisioncare_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCtL7bY4bWb8xupP6n099Ik_Kr88zeQ9Bo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
