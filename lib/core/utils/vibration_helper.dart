@@ -1,31 +1,32 @@
 import 'package:flutter/services.dart';
 
 class VibrationHelper {
-  /// Trigger a noticeable dual-pulse vibration for incoming notifications
+  static const MethodChannel _channel = MethodChannel('com.precisioncare.precisioncare_app/vibration');
+
+  /// Trigger a strong hardware vibration motor pattern on phone
   static Future<void> triggerNotificationVibration() async {
     try {
-      // First pulse
-      await HapticFeedback.vibrate();
-      await HapticFeedback.heavyImpact();
-      
-      // Short delay between pulses for realistic alert vibration
-      await Future.delayed(const Duration(milliseconds: 180));
-      
-      // Second pulse
-      await HapticFeedback.vibrate();
-      await HapticFeedback.heavyImpact();
+      await _channel.invokeMethod('vibratePattern');
     } catch (_) {
-      // Fallback
       try {
-        await HapticFeedback.vibrate();
-      } catch (_) {}
+        await _channel.invokeMethod('vibrate', {'duration': 500});
+      } catch (_) {
+        try {
+          await HapticFeedback.vibrate();
+          await HapticFeedback.heavyImpact();
+        } catch (_) {}
+      }
     }
   }
 
-  /// Light haptic feedback for user taps & button presses
+  /// Light haptic feedback
   static Future<void> lightFeedback() async {
     try {
-      await HapticFeedback.selectionClick();
-    } catch (_) {}
+      await _channel.invokeMethod('vibrate', {'duration': 40});
+    } catch (_) {
+      try {
+        await HapticFeedback.selectionClick();
+      } catch (_) {}
+    }
   }
 }
