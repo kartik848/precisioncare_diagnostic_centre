@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
+import '../../models/app_notification.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/catalog_provider.dart';
@@ -11,6 +12,7 @@ import '../catalog/catalog_screen.dart';
 import '../booking/my_bookings_screen.dart';
 import '../reports/reports_screen.dart';
 import '../profile/profile_screen.dart';
+import '../notifications/notification_center_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
   final int initialIndex;
@@ -23,6 +25,7 @@ class MainNavigationScreen extends StatefulWidget {
 
 class _MainNavigationScreenState extends State<MainNavigationScreen> {
   late int _currentIndex;
+  String? _lastShownNotifId;
 
   @override
   void initState() {
@@ -47,9 +50,88 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     setState(() => _currentIndex = index);
   }
 
+  void _checkAndShowInAppBanner(AppNotification notif) {
+    if (_lastShownNotifId == notif.id) return;
+    _lastShownNotifId = notif.id;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: AppColors.accent, width: 1.5),
+          ),
+          margin: const EdgeInsets.fromLTRB(14, 10, 14, 20),
+          content: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: AppColors.accent,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 20),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      notif.title,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      notif.message,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          action: SnackBarAction(
+            label: 'View',
+            textColor: AppColors.accent,
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const NotificationCenterScreen(),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final unreadCount = context.watch<NotificationProvider>().unreadCount;
+    final notifProvider = context.watch<NotificationProvider>();
+    final unreadCount = notifProvider.unreadCount;
+    final latestNotif = notifProvider.latestIncomingNotification;
+
+    if (latestNotif != null) {
+      _checkAndShowInAppBanner(latestNotif);
+    }
 
     final screens = [
       HomeScreen(onNavigateTab: _onTabTapped),

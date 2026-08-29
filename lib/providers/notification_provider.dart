@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../core/utils/vibration_helper.dart';
 import '../models/app_notification.dart';
 import '../services/notification_service.dart';
 
@@ -12,9 +13,14 @@ class NotificationProvider with ChangeNotifier {
   StreamSubscription<List<AppNotification>>? _notifsSub;
   String? _currentUserId;
 
+  final Set<String> _knownIds = {};
+  bool _hasInitialLoaded = false;
+  AppNotification? _latestIncomingNotification;
+
   List<AppNotification> get notifications => _notifications;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  AppNotification? get latestIncomingNotification => _latestIncomingNotification;
 
   int get unreadCount => _notifications.where((n) => !n.isRead).length;
 
@@ -34,9 +40,25 @@ class NotificationProvider with ChangeNotifier {
       userMobile: userMobile,
       userEmail: userEmail,
     ).listen((list) {
-      _notifications = list;
-      notifyListeners();
+      _processIncomingNotifications(list);
     });
+  }
+
+  void _processIncomingNotifications(List<AppNotification> newList) {
+    if (_hasInitialLoaded) {
+      // Find if there are any brand new unread notifications
+      final newItems = newList.where((n) => !_knownIds.contains(n.id) && !n.isRead).toList();
+      if (newItems.isNotEmpty) {
+        // Trigger phone dual-pulse vibration
+        VibrationHelper.triggerNotificationVibration();
+        _latestIncomingNotification = newItems.first;
+      }
+    }
+
+    _knownIds.addAll(newList.map((n) => n.id));
+    _hasInitialLoaded = true;
+    _notifications = newList;
+    notifyListeners();
   }
 
   Future<void> fetchNotifications(String userId, {String? userMobile, String? userEmail}) async {
@@ -50,6 +72,8 @@ class NotificationProvider with ChangeNotifier {
         userMobile: userMobile,
         userEmail: userEmail,
       );
+      _knownIds.addAll(_notifications.map((n) => n.id));
+      _hasInitialLoaded = true;
       subscribeToNotifications(userId, userMobile: userMobile, userEmail: userEmail);
       _isLoading = false;
       notifyListeners();
@@ -94,6 +118,8 @@ class NotificationProvider with ChangeNotifier {
 
     _notifications.removeWhere((n) => n.id == notif.id);
     _notifications.insert(0, notif);
+    _knownIds.add(notif.id);
+    VibrationHelper.triggerNotificationVibration();
     notifyListeners();
     return notif;
   }
