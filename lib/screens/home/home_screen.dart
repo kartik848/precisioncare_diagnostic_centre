@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final allServices = context.watch<CatalogProvider>().allServices;
     final featuredPackages = allServices.take(6).toList();
 
-    final nextTestAlert = notifications.where((n) => n.type == NotificationType.nextTestDue && !n.isRead).toList();
+    final nextTestAlert = notifications.where((n) => !n.isRead && (n.type == NotificationType.nextTestDue || n.type == NotificationType.adminReminder || n.type == NotificationType.reportReady || n.type == NotificationType.bookingUpdate)).toList();
     final firstName = (user != null && user.name.isNotEmpty) ? user.name.split(' ').first : 'Patient';
 
     return Scaffold(

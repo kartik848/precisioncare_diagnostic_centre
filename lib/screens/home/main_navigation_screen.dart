@@ -34,7 +34,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       final userId = user?.uid ?? 'guest_user';
       context.read<BookingProvider>().fetchBookings(userId);
       context.read<ReportProvider>().fetchReports(userId);
-      context.read<NotificationProvider>().fetchNotifications(userId);
+      context.read<NotificationProvider>().fetchNotifications(
+        userId,
+        userMobile: user?.mobile,
+        userEmail: user?.email,
+      );
       context.read<CatalogProvider>().refreshCatalog();
     });
   }

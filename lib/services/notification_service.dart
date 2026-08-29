@@ -17,8 +17,52 @@ class NotificationService {
     }
   }
 
+  static String _cleanPhone(String? p) {
+    if (p == null) return '';
+    final digits = p.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length >= 10) {
+      return digits.substring(digits.length - 10);
+    }
+    return digits;
+  }
+
+  bool _doesNotificationMatch(AppNotification n, String userId, String? userMobile, String? userEmail) {
+    // 1. Broadcast to all patients
+    if (n.userId == 'all_patients' || userId.isEmpty) return true;
+
+    final target = n.userId.trim().toLowerCase();
+    final targetClean = _cleanPhone(n.userId);
+    final userCleanMobile = _cleanPhone(userMobile);
+    final userCleanEmail = (userEmail ?? '').trim().toLowerCase();
+
+    // 2. Direct UID match
+    if (target == userId.trim().toLowerCase()) return true;
+
+    // 3. Mobile phone number match (10 digits)
+    if (userCleanMobile.isNotEmpty && targetClean.isNotEmpty) {
+      if (userCleanMobile == targetClean) return true;
+    }
+
+    // 4. Email match
+    if (userCleanEmail.isNotEmpty && target == userCleanEmail) return true;
+
+    // 5. Metadata fields match
+    if (n.metaData != null) {
+      final mUid = (n.metaData!['targetUid'] ?? '').toString().trim().toLowerCase();
+      if (mUid.isNotEmpty && mUid == userId.trim().toLowerCase()) return true;
+
+      final mPhone = _cleanPhone(n.metaData!['targetMobile']?.toString());
+      if (userCleanMobile.isNotEmpty && mPhone.isNotEmpty && mPhone == userCleanMobile) return true;
+
+      final mEmail = (n.metaData!['targetEmail'] ?? '').toString().trim().toLowerCase();
+      if (userCleanEmail.isNotEmpty && mEmail.isNotEmpty && mEmail == userCleanEmail) return true;
+    }
+
+    return false;
+  }
+
   // Real-time stream of notifications for patient app
-  Stream<List<AppNotification>> streamNotifications(String userId) {
+  Stream<List<AppNotification>> streamNotifications(String userId, {String? userMobile, String? userEmail}) {
     if (_isFirebaseAvailable && _firestore != null) {
       return _firestore!
           .collection('notifications')
@@ -28,7 +72,7 @@ class NotificationService {
       }).map((snapshot) {
         final list = snapshot.docs
             .map((doc) => AppNotification.fromMap(doc.data(), doc.id))
-            .where((n) => n.userId == userId || n.userId == 'all_patients' || userId.isEmpty)
+            .where((n) => _doesNotificationMatch(n, userId, userMobile, userEmail))
             .toList();
         list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
         return list;
@@ -38,7 +82,7 @@ class NotificationService {
   }
 
   // Get notifications for user
-  Future<List<AppNotification>> getNotifications(String userId) async {
+  Future<List<AppNotification>> getNotifications(String userId, {String? userMobile, String? userEmail}) async {
     if (_isFirebaseAvailable && _firestore != null) {
       try {
         final query = await _firestore!
@@ -48,7 +92,7 @@ class NotificationService {
         if (query.docs.isNotEmpty) {
           final list = query.docs
               .map((doc) => AppNotification.fromMap(doc.data(), doc.id))
-              .where((n) => n.userId == userId || n.userId == 'all_patients' || userId.isEmpty)
+              .where((n) => _doesNotificationMatch(n, userId, userMobile, userEmail))
               .toList();
           list.sort((a, b) => b.timestamp.compareTo(a.timestamp));
           return list;
@@ -60,7 +104,7 @@ class NotificationService {
     final local = await _getLocalNotifications();
     if (local.isNotEmpty) {
       final filtered = local
-          .where((n) => n.userId == userId || n.userId == 'all_patients' || userId.isEmpty)
+          .where((n) => _doesNotificationMatch(n, userId, userMobile, userEmail))
           .toList();
       filtered.sort((a, b) => b.timestamp.compareTo(a.timestamp));
       return filtered;
@@ -153,10 +197,10 @@ class NotificationService {
     await _saveAllNotificationsLocally(existing);
   }
 
-  Future<void> _saveAllNotificationsLocally(List<AppNotification> list) async {
+  Future<void> _saveAllNotificationsLocally(List<AppNotification> notifications) async {
     final prefs = await SharedPreferences.getInstance();
-    final data = list.map((n) => n.toMap()..['id'] = n.id).toList();
-    await prefs.setString('precisioncare_notifications', jsonEncode(data));
+    final list = notifications.map((n) => n.toMap()).toList();
+    await prefs.setString('precisioncare_notifications', jsonEncode(list));
   }
 
   Future<List<AppNotification>> _getLocalNotifications() async {
@@ -165,9 +209,7 @@ class NotificationService {
     if (raw == null) return [];
     try {
       final List<dynamic> decoded = jsonDecode(raw);
-      return decoded
-          .map((e) => AppNotification.fromMap(Map<String, dynamic>.from(e), e['id'] ?? ''))
-          .toList();
+      return decoded.map((e) => AppNotification.fromMap(Map<String, dynamic>.from(e), e['id'] ?? '')).toList();
     } catch (_) {
       return [];
     }

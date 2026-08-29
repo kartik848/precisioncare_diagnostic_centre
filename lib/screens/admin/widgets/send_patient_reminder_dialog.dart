@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../models/app_notification.dart';
+import '../../../models/user_profile.dart';
 import '../../../providers/admin_provider.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
@@ -24,6 +25,7 @@ class _SendPatientReminderDialogState extends State<SendPatientReminderDialog> {
   final _formKey = GlobalKey<FormState>();
 
   bool _sendToAllUsers = true;
+  UserProfile? _selectedUser;
   late TextEditingController _patientIdController;
   final _titleController = TextEditingController(text: '🔔 Annual Preventive Health Screening Due');
   final _messageController = TextEditingController(
@@ -77,11 +79,57 @@ class _SendPatientReminderDialogState extends State<SendPatientReminderDialog> {
         ),
       );
     } else {
+      String targetUid = '';
+      String targetMobile = '';
+      String targetEmail = '';
+      String targetName = '';
+
+      if (_selectedUser != null) {
+        targetUid = _selectedUser!.uid;
+        targetMobile = _selectedUser!.mobile;
+        targetEmail = _selectedUser!.email;
+        targetName = _selectedUser!.name;
+      } else {
+        final typed = _patientIdController.text.trim();
+        final cleanTyped = typed.replaceAll(RegExp(r'[^0-9]'), '');
+
+        // Search in usersList
+        UserProfile? matched;
+        for (final u in admin.usersList) {
+          final uClean = u.mobile.replaceAll(RegExp(r'[^0-9]'), '');
+          if (u.uid.toLowerCase() == typed.toLowerCase() ||
+              u.email.toLowerCase() == typed.toLowerCase() ||
+              (cleanTyped.isNotEmpty && uClean.endsWith(cleanTyped)) ||
+              u.name.toLowerCase() == typed.toLowerCase()) {
+            matched = u;
+            break;
+          }
+        }
+
+        if (matched != null) {
+          targetUid = matched.uid;
+          targetMobile = matched.mobile;
+          targetEmail = matched.email;
+          targetName = matched.name;
+        } else {
+          targetUid = typed;
+          targetMobile = cleanTyped.isNotEmpty ? cleanTyped : typed;
+          targetEmail = typed.contains('@') ? typed : '';
+          targetName = typed;
+        }
+      }
+
       final success = await admin.sendPatientReminder(
-        userId: _patientIdController.text.trim(),
+        userId: targetUid,
         title: _titleController.text.trim(),
         message: _messageController.text.trim(),
         type: NotificationType.nextTestDue,
+        metaData: {
+          'targetUid': targetUid,
+          'targetMobile': targetMobile,
+          'targetEmail': targetEmail,
+          'targetName': targetName,
+        },
       );
 
       if (!mounted) return;
@@ -89,8 +137,8 @@ class _SendPatientReminderDialogState extends State<SendPatientReminderDialog> {
       if (success) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Personalized test reminder dispatched to patient!'),
+          SnackBar(
+            content: Text('✓ Personalized alert sent to ${targetName.isNotEmpty ? targetName : targetUid}!'),
             backgroundColor: AppColors.success,
           ),
         );
@@ -100,13 +148,21 @@ class _SendPatientReminderDialogState extends State<SendPatientReminderDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final totalPatients = context.watch<AdminProvider>().usersList.length;
+    final usersList = context.watch<AdminProvider>().usersList;
+    final totalPatients = usersList.length;
+
+    // Preselect initial user if provided
+    if (_selectedUser == null && widget.initialUserId != null) {
+      try {
+        _selectedUser = usersList.firstWhere((u) => u.uid == widget.initialUserId);
+      } catch (_) {}
+    }
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: Container(
         padding: const EdgeInsets.all(22),
-        constraints: const BoxConstraints(maxWidth: 520),
+        constraints: const BoxConstraints(maxWidth: 540),
         child: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -123,7 +179,7 @@ class _SendPatientReminderDialogState extends State<SendPatientReminderDialog> {
                         Icon(Icons.campaign_rounded, color: AppColors.accent, size: 26),
                         SizedBox(width: 8),
                         Text(
-                          'Push Patient Reminder & Advisory',
+                          'Push Patient Reminder & Alert',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
                         ),
                       ],
@@ -217,7 +273,7 @@ class _SendPatientReminderDialogState extends State<SendPatientReminderDialog> {
                         SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'This announcement will be pushed to ALL registered patient apps and highlighted on their Home Screens.',
+                            'This announcement will be pushed in real-time to ALL registered patient apps and highlighted on their screens.',
                             style: TextStyle(fontSize: 11, color: Color(0xFFC2410C), fontWeight: FontWeight.w600),
                           ),
                         ),
@@ -225,12 +281,60 @@ class _SendPatientReminderDialogState extends State<SendPatientReminderDialog> {
                     ),
                   )
                 else ...[
+                  // 1. Patient Picker Dropdown
+                  if (usersList.isNotEmpty) ...[
+                    const Text('Select Registered Patient:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<UserProfile>(
+                          value: _selectedUser,
+                          isExpanded: true,
+                          hint: const Text('Choose patient from directory...', style: TextStyle(fontSize: 12.5)),
+                          items: usersList.map((u) {
+                            return DropdownMenuItem<UserProfile>(
+                              value: u,
+                              child: Text(
+                                '${u.name} (Phone: ${u.mobile})',
+                                style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) {
+                              setState(() {
+                                _selectedUser = val;
+                                _patientIdController.text = val.uid;
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    const Center(child: Text('— OR ENTER PATIENT PHONE / EMAIL / UID —', style: TextStyle(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w700))),
+                    const SizedBox(height: 10),
+                  ],
+
+                  // 2. Manual ID / Phone / Email Input
                   CustomTextField(
                     controller: _patientIdController,
-                    label: 'Target Patient ID / UID *',
-                    hint: 'e.g. user_1700000000000',
+                    label: 'Target Patient Phone / Email / UID *',
+                    hint: 'e.g. 9876543210 or patient@gmail.com or UID',
                     prefixIcon: Icons.person_pin_circle_outlined,
-                    validator: (v) => !_sendToAllUsers && (v == null || v.trim().isEmpty) ? 'Enter Patient ID' : null,
+                    onChanged: (val) {
+                      if (_selectedUser != null && val != _selectedUser!.uid) {
+                        setState(() => _selectedUser = null);
+                      }
+                    },
+                    validator: (v) => !_sendToAllUsers && (v == null || v.trim().isEmpty) ? 'Enter Patient Phone, Email or ID' : null,
                   ),
                 ],
                 const SizedBox(height: 14),

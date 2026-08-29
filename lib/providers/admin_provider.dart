@@ -411,6 +411,7 @@ class AdminProvider with ChangeNotifier {
     required String title,
     required String message,
     NotificationType type = NotificationType.nextTestDue,
+    Map<String, dynamic>? metaData,
   }) async {
     try {
       await _notificationService.sendAdminNotification(
@@ -418,6 +419,7 @@ class AdminProvider with ChangeNotifier {
         title: title,
         message: message,
         type: type,
+        metaData: metaData,
       );
       return true;
     } catch (_) {

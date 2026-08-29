@@ -23,7 +23,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<AuthProvider>().user;
       if (user != null) {
-        context.read<NotificationProvider>().fetchNotifications(user.uid);
+        context.read<NotificationProvider>().fetchNotifications(
+          user.uid,
+          userMobile: user.mobile,
+          userEmail: user.email,
+        );
       }
     });
   }

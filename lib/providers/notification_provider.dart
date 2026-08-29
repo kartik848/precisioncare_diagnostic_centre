@@ -24,25 +24,33 @@ class NotificationProvider with ChangeNotifier {
     super.dispose();
   }
 
-  void subscribeToNotifications(String userId) {
+  void subscribeToNotifications(String userId, {String? userMobile, String? userEmail}) {
     if (_currentUserId == userId && _notifsSub != null) return;
     _currentUserId = userId;
 
     _notifsSub?.cancel();
-    _notifsSub = _notificationService.streamNotifications(userId).listen((list) {
+    _notifsSub = _notificationService.streamNotifications(
+      userId,
+      userMobile: userMobile,
+      userEmail: userEmail,
+    ).listen((list) {
       _notifications = list;
       notifyListeners();
     });
   }
 
-  Future<void> fetchNotifications(String userId) async {
+  Future<void> fetchNotifications(String userId, {String? userMobile, String? userEmail}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _notifications = await _notificationService.getNotifications(userId);
-      subscribeToNotifications(userId);
+      _notifications = await _notificationService.getNotifications(
+        userId,
+        userMobile: userMobile,
+        userEmail: userEmail,
+      );
+      subscribeToNotifications(userId, userMobile: userMobile, userEmail: userEmail);
       _isLoading = false;
       notifyListeners();
     } catch (e) {
