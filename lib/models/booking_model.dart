@@ -11,6 +11,27 @@ enum BookingStatus {
   cancelled,
 }
 
+extension BookingStatusX on BookingStatus {
+  String get displayName {
+    switch (this) {
+      case BookingStatus.pendingApproval:
+        return 'Pending Approval';
+      case BookingStatus.confirmed:
+        return 'Confirmed';
+      case BookingStatus.technicianAssigned:
+        return 'Staff Dispatched';
+      case BookingStatus.sampleCollected:
+        return 'Sample Collected';
+      case BookingStatus.processing:
+        return 'Processing in Lab';
+      case BookingStatus.completed:
+        return 'Completed';
+      case BookingStatus.cancelled:
+        return 'Cancelled';
+    }
+  }
+}
+
 enum VisitType {
   homeVisit,
   inHouseCentre,
