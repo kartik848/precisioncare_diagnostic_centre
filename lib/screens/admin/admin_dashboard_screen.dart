@@ -836,7 +836,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         onPressed: () => _openAddTestDialog(),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add_circle_outline, color: Colors.white),
-        label: const Text('Add Diagnostic Test', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        label: const Text('Add to Catalog', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
       );
     }
     return null;
@@ -1257,14 +1257,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Diagnostic Tests & Packages Live Catalog', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+                    const Text('Diagnostic Services & Packages Live Catalog', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
                     Text('Active investigation offerings: ${catalog.length}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   ],
                 ),
                 ElevatedButton.icon(
                   onPressed: () => _openAddTestDialog(),
                   icon: const Icon(Icons.add_circle_outline, size: 14, color: Colors.white),
-                  label: const Text('Add Test', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
+                  label: const Text('Add to Catalog', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
                   style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
                 ),
               ],
@@ -1332,7 +1332,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   IconButton(
                     icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
                     onPressed: () => _openAddTestDialog(test),
-                    tooltip: 'Edit Test',
+                    tooltip: 'Edit Item',
                   ),
                   IconButton(
                     icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
@@ -1340,7 +1340,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       showDialog(
                         context: context,
                         builder: (_) => AlertDialog(
-                          title: const Text('Delete Test?'),
+                          title: const Text('Delete Item?'),
                           content: Text('Remove ${test.title} from catalog?'),
                           actions: [
                             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
@@ -1356,7 +1356,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                       );
                     },
-                    tooltip: 'Delete Test',
+                    tooltip: 'Delete Item',
                   ),
                 ],
               ),

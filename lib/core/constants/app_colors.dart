@@ -22,15 +22,17 @@ class AppColors {
   static const Color info = Color(0xFF3B82F6);
   static const Color infoLight = Color(0xFFDBEAFE);
 
-  // Neutral Colors
-  static const Color background = Color(0xFFF8FAFC);
+  // Neutral Colors (Soothing Healthcare Light Pink)
+  static const Color background = Color(0xFFFFF4F6);
   static const Color surface = Color(0xFFFFFFFF);
   static const Color cardBackground = Color(0xFFFFFFFF);
   static const Color textPrimary = Color(0xFF1E293B);
   static const Color textSecondary = Color(0xFF64748B);
   static const Color textMuted = Color(0xFF94A3B8);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color divider = Color(0xFFF1F5F9);
+  static const Color border = Color(0xFFFCE7EC);
+  static const Color divider = Color(0xFFFDF2F4);
+  static const Color lightPink = Color(0xFFFFF0F3);
+  static const Color softBlush = Color(0xFFFFE4E8);
 
   // Diagnostic Category Badges
   static const Color bloodTestBadge = Color(0xFFE11D48);

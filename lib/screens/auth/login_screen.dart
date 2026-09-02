@@ -74,105 +74,148 @@ class _LoginScreenState extends State<LoginScreen> {
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: const Color(0xFFFFF0F3), // Soft soothing healthcare light pink
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
             child: Container(
-              constraints: const BoxConstraints(maxWidth: 460),
+              constraints: const BoxConstraints(maxWidth: 450),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // 1. TOP BRANDING & LOGO (Tata 1mg style)
+                    // 1. 3D AI GENERATED DOCTOR BITMOJI & BRAND BANNER
                     Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.primary.withOpacity(0.08),
-                              blurRadius: 20,
-                              offset: const Offset(0, 6),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 104,
+                            height: 104,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFFECDD3), width: 3),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFFE11D48).withOpacity(0.18),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(16),
-                          child: Image.asset(
-                            'assets/images/precisioncare_logo.jpeg',
-                            height: 84,
-                            fit: BoxFit.contain,
+                            child: ClipOval(
+                              child: Image.asset(
+                                'assets/images/3d/doctor_mascot.jpg',
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                           ),
-                        ),
+                          Positioned(
+                            bottom: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xFFFECDD3), width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 6,
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.asset(
+                                  'assets/images/precisioncare_logo.jpeg',
+                                  width: 28,
+                                  height: 28,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 12),
 
                     const Center(
                       child: Text(
-                        AppStrings.appName,
+                        'PrecisionCare Diagnostics',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 21,
                           fontWeight: FontWeight.w900,
                           color: Color(0xFF0F172A),
                           letterSpacing: -0.3,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    const Center(
-                      child: Text(
-                        'NABL Accredited Diagnostics • Home Visits in Pune',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
+                    const SizedBox(height: 3),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFE4E8),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFECDD3)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.verified_rounded, size: 13, color: Color(0xFFE11D48)),
+                            SizedBox(width: 4),
+                            Text(
+                              'NABL Accredited • Pune Home Visits in 60 Mins',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFFBE123C),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
                     const SizedBox(height: 16),
 
-                    // 2. TATA 1MG STYLE 3D FEATURE PILLS
+                    // 2. 3D BITMOJI FEATURE STRIP
                     Row(
                       children: [
                         Expanded(
-                          child: _buildTataFeaturePill(
-                            emoji: '👨‍⚕️',
-                            title: 'MD Pathologist',
+                          child: _build3DFeaturePill(
+                            imageAsset: 'assets/images/3d/female_doctor.jpg',
+                            title: 'MD Doctors',
                             subtitle: 'Supervised',
-                            color: const Color(0xFF0284C7),
-                            bg: const Color(0xFFE0F2FE),
+                            tagColor: const Color(0xFF0284C7),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildTataFeaturePill(
-                            emoji: '🩸',
+                          child: _build3DFeaturePill(
+                            imageAsset: 'assets/images/3d/fullbody_package.jpg',
                             title: 'Home Sample',
                             subtitle: 'In 60 Mins',
-                            color: const Color(0xFFEA580C),
-                            bg: const Color(0xFFFFEDD5),
+                            tagColor: const Color(0xFFEA580C),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: _buildTataFeaturePill(
-                            emoji: '⚡',
-                            title: 'Instant Reports',
-                            subtitle: 'NABL Certified',
-                            color: const Color(0xFF16A34A),
-                            bg: const Color(0xFFDCFCE7),
+                          child: _build3DFeaturePill(
+                            imageAsset: 'assets/images/3d/doc_pathologist.jpg',
+                            title: 'NABL Lab',
+                            subtitle: 'Fast Reports',
+                            tagColor: const Color(0xFF16A34A),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 16),
 
                     // 3. MAIN LOGIN CARD
                     Container(
@@ -180,10 +223,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(22),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                        border: Border.all(color: const Color(0xFFFECDD3), width: 1.3),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
+                            color: const Color(0xFFE11D48).withOpacity(0.06),
                             blurRadius: 18,
                             offset: const Offset(0, 6),
                           ),
@@ -201,14 +244,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                   Text(
                                     'Patient Sign In',
                                     style: TextStyle(
-                                      fontSize: 17,
-                                      fontWeight: FontWeight.w800,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w900,
                                       color: Color(0xFF0F172A),
                                     ),
                                   ),
                                   SizedBox(height: 2),
                                   Text(
-                                    'Access tests, reports & live bookings',
+                                    'Access tests, reports & doctor prescriptions',
                                     style: TextStyle(
                                       fontSize: 11.5,
                                       color: Color(0xFF64748B),
@@ -217,12 +260,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ],
                               ),
                               Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFF1F5F9),
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFFF0F3),
                                   shape: BoxShape.circle,
+                                  border: Border.all(color: const Color(0xFFFECDD3)),
                                 ),
-                                child: const Icon(Icons.lock_rounded, size: 18, color: AppColors.primary),
+                                child: const Icon(Icons.lock_person_rounded, size: 20, color: Color(0xFFE11D48)),
                               ),
                             ],
                           ),
@@ -285,11 +330,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEFF6FF),
+                                    color: const Color(0xFFFFF0F3),
                                     borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: const Color(0xFFBFDBFE)),
+                                    border: Border.all(color: const Color(0xFFFECDD3)),
                                   ),
-                                  child: const Text('kartik@test.com', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF1D4ED8))),
+                                  child: const Text('kartik@test.com', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFFBE123C))),
                                 ),
                               ),
                             ],
@@ -334,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
                     // 5. SECURITY GUARANTEE FOOTER
                     const Center(
@@ -364,19 +409,18 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTataFeaturePill({
-    required String emoji,
+  Widget _build3DFeaturePill({
+    required String imageAsset,
     required String title,
     required String subtitle,
-    required Color color,
-    required Color bg,
+    required Color tagColor,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFCE7EC)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -388,12 +432,18 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(6),
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: bg,
               shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFFECDD3), width: 1.5),
             ),
-            child: Text(emoji, style: const TextStyle(fontSize: 15)),
+            child: ClipOval(
+              child: Image.asset(
+                imageAsset,
+                fit: BoxFit.cover,
+              ),
+            ),
           ),
           const SizedBox(width: 6),
           Expanded(
@@ -404,7 +454,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   title,
                   style: const TextStyle(
                     fontSize: 10,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                     color: Color(0xFF0F172A),
                   ),
                   maxLines: 1,
@@ -414,8 +464,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   subtitle,
                   style: TextStyle(
                     fontSize: 8.5,
-                    fontWeight: FontWeight.w600,
-                    color: color,
+                    fontWeight: FontWeight.w700,
+                    color: tagColor,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

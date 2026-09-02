@@ -22,61 +22,52 @@ class TataQuickActions extends StatelessWidget {
         Row(
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(6),
+                color: const Color(0xFFFFE4E8),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFECDD3)),
               ),
-              child: const Row(
-                children: [
-                  Icon(Icons.bolt_rounded, size: 13, color: Color(0xFFD97706)),
-                  SizedBox(width: 3),
-                  Text(
-                    'POPULAR QUICK ACTIONS',
-                    style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: Color(0xFFB45309),
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ],
+              child: const Text(
+                '⚡ TOP HEALTH SERVICES',
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFFBE123C),
+                  letterSpacing: 0.5,
+                ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Row(
           children: [
             // 1. Full Body Packages
             Expanded(
-              child: _buildTataActionCard(
+              child: _buildTata3DActionCard(
                 tag: 'UPTO 60% OFF',
                 tagBg: const Color(0xFFFFEDD5),
                 tagColor: const Color(0xFFC2410C),
                 title: 'Full Body\nPackages',
                 subtitle: '80+ Vital Tests',
-                icon: Icons.health_and_safety_rounded,
-                iconBg: const Color(0xFFFFE8D6),
-                iconColor: const Color(0xFFEA580C),
+                imageAsset: 'assets/images/3d/fullbody_package.jpg',
                 cardGradient: const [Color(0xFFFFF7ED), Color(0xFFFFFFFF)],
                 borderColor: const Color(0xFFFED7AA),
                 onTap: onFullBodyTap,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
 
             // 2. Book via Call
             Expanded(
-              child: _buildTataActionCard(
+              child: _buildTata3DActionCard(
                 tag: '24x7 HELPLINE',
                 tagBg: const Color(0xFFDBEAFE),
                 tagColor: const Color(0xFF1D4ED8),
                 title: 'Book via\nDirect Call',
                 subtitle: 'Instant Lab Desk',
-                icon: Icons.phone_in_talk_rounded,
-                iconBg: const Color(0xFFE0E7FF),
-                iconColor: const Color(0xFF2563EB),
+                imageAsset: 'assets/images/3d/call_helpline.jpg',
                 cardGradient: const [Color(0xFFEFF6FF), Color(0xFFFFFFFF)],
                 borderColor: const Color(0xFFBFDBFE),
                 onTap: onCallTap,
@@ -84,38 +75,34 @@ class TataQuickActions extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         Row(
           children: [
             // 3. Book via WhatsApp
             Expanded(
-              child: _buildTataActionCard(
+              child: _buildTata3DActionCard(
                 tag: 'QUICK 2-MIN',
                 tagBg: const Color(0xFFDCFCE7),
                 tagColor: const Color(0xFF15803D),
                 title: 'Book via\nWhatsApp',
                 subtitle: 'Direct Chat Slot',
-                icon: Icons.chat_rounded,
-                iconBg: const Color(0xFFD1FAE5),
-                iconColor: const Color(0xFF059669),
+                imageAsset: 'assets/images/3d/whatsapp_booking.jpg',
                 cardGradient: const [Color(0xFFF0FDF4), Color(0xFFFFFFFF)],
                 borderColor: const Color(0xFFBBF7D0),
                 onTap: onWhatsAppTap,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
 
             // 4. Upload Prescription
             Expanded(
-              child: _buildTataActionCard(
+              child: _buildTata3DActionCard(
                 tag: '1-TAP ORDER',
                 tagBg: const Color(0xFFF3E8FF),
                 tagColor: const Color(0xFF7E22CE),
                 title: 'Upload\nPrescription',
                 subtitle: 'Call in 15 mins',
-                icon: Icons.document_scanner_rounded,
-                iconBg: const Color(0xFFEDE9FE),
-                iconColor: const Color(0xFF7C3AED),
+                imageAsset: 'assets/images/3d/upload_rx.jpg',
                 cardGradient: const [Color(0xFFFAF5FF), Color(0xFFFFFFFF)],
                 borderColor: const Color(0xFFE9D5FF),
                 onTap: onUploadPrescriptionTap,
@@ -127,22 +114,20 @@ class TataQuickActions extends StatelessWidget {
     );
   }
 
-  Widget _buildTataActionCard({
+  Widget _buildTata3DActionCard({
     required String tag,
     required Color tagBg,
     required Color tagColor,
     required String title,
     required String subtitle,
-    required IconData icon,
-    required Color iconBg,
-    required Color iconColor,
+    required String imageAsset,
     required List<Color> cardGradient,
     required Color borderColor,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -151,12 +136,12 @@ class TataQuickActions extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: borderColor, width: 1.2),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: borderColor, width: 1.3),
           boxShadow: [
             BoxShadow(
-              color: iconColor.withOpacity(0.06),
-              blurRadius: 10,
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 12,
               offset: const Offset(0, 4),
             ),
           ],
@@ -166,45 +151,55 @@ class TataQuickActions extends StatelessWidget {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                   decoration: BoxDecoration(
                     color: tagBg,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     tag,
                     style: TextStyle(
                       fontSize: 8.5,
-                      fontWeight: FontWeight.w800,
+                      fontWeight: FontWeight.w900,
                       color: tagColor,
                     ),
                   ),
                 ),
+                // 3D Bitmoji Art Thumbnail
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    color: iconBg,
-                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white, width: 2),
                     boxShadow: [
                       BoxShadow(
-                        color: iconColor.withOpacity(0.2),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
                       ),
                     ],
                   ),
-                  child: Icon(icon, color: iconColor, size: 20),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      imageAsset,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
             Text(
               title,
               style: const TextStyle(
                 fontSize: 14,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
                 color: Color(0xFF0F172A),
                 height: 1.2,
               ),

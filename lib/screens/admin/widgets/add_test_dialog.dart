@@ -134,7 +134,7 @@ class _AddTestDialogState extends State<AddTestDialog> {
                       const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary, size: 22),
                       const SizedBox(width: 8),
                       Text(
-                        isEditing ? 'Edit Diagnostic Test' : 'Add New Diagnostic Test',
+                        isEditing ? 'Edit Catalog Item' : 'Add to Catalog',
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                       ),
                     ],
@@ -150,13 +150,13 @@ class _AddTestDialogState extends State<AddTestDialog> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Test Name
+                      // Package / Service Name
                       CustomTextField(
                         controller: _titleController,
-                        label: 'Test / Package Name *',
+                        label: 'Package / Investigation Name *',
                         hint: 'e.g. Thyroid Profile Total (T3, T4, TSH)',
-                        prefixIcon: Icons.science_outlined,
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Enter test name' : null,
+                        prefixIcon: Icons.medical_services_outlined,
+                        validator: (v) => v == null || v.trim().isEmpty ? 'Enter name' : null,
                       ),
                       const SizedBox(height: 12),
 
@@ -345,7 +345,7 @@ class _AddTestDialogState extends State<AddTestDialog> {
               const SizedBox(height: 10),
 
               CustomButton(
-                text: isEditing ? 'Update Test' : 'Publish Test to Patient App',
+                text: isEditing ? 'Update Details' : 'Publish to Patient App',
                 onPressed: _handleSave,
                 icon: Icons.cloud_upload_rounded,
                 backgroundColor: AppColors.primary,

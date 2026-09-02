@@ -203,7 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final firstName = (user != null && user.name.isNotEmpty) ? user.name.split(' ').first : 'Patient';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
