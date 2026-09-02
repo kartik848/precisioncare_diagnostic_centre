@@ -194,6 +194,41 @@ class _EditBannerDialogState extends State<EditBannerDialog> {
                 ),
                 const SizedBox(height: 14),
 
+                // Banner Aspect Ratio & Size Guidance Box
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFF86EFAC)),
+                  ),
+                  child: const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.aspect_ratio_rounded, size: 17, color: Color(0xFF16A34A)),
+                          SizedBox(width: 8),
+                          Text(
+                            'Required Banner Image Ratio: 2:1 (or 16:9)',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF15803D),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 6),
+                      Text(
+                        '• Best Quality: 1200 x 600 px (Exact 2:1 Ratio)\n• Standard Size: 1080 x 540 px (2:1 Ratio)\n• HD Landscape: 1280 x 720 px (16:9 Ratio)\n• Graphic Tip: Keep illustrations/photos on the RIGHT side so left headline text stays readable.',
+                        style: TextStyle(fontSize: 11, color: Color(0xFF166534), height: 1.45),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
                 // Direct File Upload from Device Button (ImgBB API)
                 Container(
                   padding: const EdgeInsets.all(12),

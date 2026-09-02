@@ -1187,8 +1187,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Top Home Carousel Banners & Offers', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
-                    Text('Active promotional slides: ${banners.length}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    Row(
+                      children: [
+                        const Text('Top Home Carousel Banners & Offers', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: const Color(0xFF86EFAC)),
+                          ),
+                          child: const Text('Ratio 2:1 (1200x600 px)', style: TextStyle(color: Color(0xFF15803D), fontSize: 9.5, fontWeight: FontWeight.w800)),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 3),
+                    Text('Active promotional slides: ${banners.length} • Recommended Image Size: 1200 x 600 px (2:1 Ratio)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   ],
                 ),
                 ElevatedButton.icon(
