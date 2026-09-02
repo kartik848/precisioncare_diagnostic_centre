@@ -41,6 +41,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     'Patient Users Directory',
   ];
 
+  final TextEditingController _catalogSearchController = TextEditingController();
+  String _catalogSearchQuery = '';
+  String _catalogCategoryFilter = 'All';
+
+  @override
+  void dispose() {
+    _catalogSearchController.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1236,61 +1246,244 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // 4. TEST CATALOG TAB
+  // 4. TEST CATALOG TAB WITH SEARCH & PRICE FILTERING
   Widget _buildCatalogTab(List<DiagnosticService> catalog) {
+    // 1. Filter by category
+    var filtered = catalog.where((test) {
+      if (_catalogCategoryFilter == 'Home Visits') {
+        return test.isHomeVisitAvailable || test.category == ServiceCategory.homeVisit;
+      } else if (_catalogCategoryFilter == 'In-House') {
+        return test.isInHouseAvailable || test.category == ServiceCategory.inHouseDiagnostic;
+      } else if (_catalogCategoryFilter == 'Physio') {
+        return test.category == ServiceCategory.physiotherapy;
+      } else if (_catalogCategoryFilter == 'Packages') {
+        return test.category == ServiceCategory.healthPackage;
+      }
+      return true;
+    }).toList();
+
+    // 2. Filter by search query (name, category, price, description)
+    final query = _catalogSearchQuery.trim().toLowerCase();
+    if (query.isNotEmpty) {
+      filtered = filtered.where((test) {
+        final title = test.title.toLowerCase();
+        final cat = test.categoryName.toLowerCase();
+        final desc = test.description.toLowerCase();
+        final price = test.price.toInt().toString();
+        final origPrice = test.originalPrice?.toInt().toString() ?? '';
+        final sample = test.sampleType.toLowerCase();
+        return title.contains(query) ||
+            cat.contains(query) ||
+            desc.contains(query) ||
+            price.contains(query) ||
+            origPrice.contains(query) ||
+            sample.contains(query);
+      }).toList();
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: catalog.length + 1,
+      itemCount: filtered.isEmpty ? 2 : filtered.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
           return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(14),
+            margin: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.02),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                // Top Row: Title + Add Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Diagnostic Services & Packages Live Catalog', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
-                    Text('Active investigation offerings: ${catalog.length}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Diagnostic Services & Packages Live Catalog',
+                            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Total Catalog: ${catalog.length} services • Filtered: ${filtered.length}',
+                            style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _openAddTestDialog(),
+                      icon: const Icon(Icons.add_circle_outline, size: 15, color: Colors.white),
+                      label: const Text('Add to Catalog', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w800)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _openAddTestDialog(),
-                  icon: const Icon(Icons.add_circle_outline, size: 14, color: Colors.white),
-                  label: const Text('Add to Catalog', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                const SizedBox(height: 14),
+
+                // Search Bar
+                Container(
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF8FAFC),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: TextField(
+                    controller: _catalogSearchController,
+                    onChanged: (val) {
+                      setState(() {
+                        _catalogSearchQuery = val;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: 'Search by test name, category, or price (e.g. Thyroid, ECG, 499)...',
+                      hintStyle: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
+                      prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
+                      suffixIcon: _catalogSearchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.textMuted),
+                              onPressed: () {
+                                _catalogSearchController.clear();
+                                setState(() {
+                                  _catalogSearchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Category Filter Chips
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildCatalogFilterChip('All', 'All (${catalog.length})'),
+                      const SizedBox(width: 8),
+                      _buildCatalogFilterChip('Home Visits', 'Home Visits'),
+                      const SizedBox(width: 8),
+                      _buildCatalogFilterChip('In-House', 'In-House'),
+                      const SizedBox(width: 8),
+                      _buildCatalogFilterChip('Physio', 'Physiotherapy'),
+                      const SizedBox(width: 8),
+                      _buildCatalogFilterChip('Packages', 'Packages'),
+                    ],
+                  ),
                 ),
               ],
             ),
           );
         }
 
-        final test = catalog[index - 1];
+        // Empty Search Results State
+        if (filtered.isEmpty) {
+          return Container(
+            margin: const EdgeInsets.only(top: 20),
+            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight.withOpacity(0.4),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.search_off_rounded, size: 36, color: AppColors.primary),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  _catalogSearchQuery.isNotEmpty
+                      ? 'No investigations found matching "$_catalogSearchQuery"'
+                      : 'No items in this category',
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Try searching with a different keyword or reset filters',
+                  style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _catalogSearchController.clear();
+                    setState(() {
+                      _catalogSearchQuery = '';
+                      _catalogCategoryFilter = 'All';
+                    });
+                  },
+                  icon: const Icon(Icons.refresh_rounded, size: 16),
+                  label: const Text('Reset All Filters', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final test = filtered[index - 1];
 
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.015),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.08), borderRadius: BorderRadius.circular(10)),
-                child: const Icon(Icons.science_outlined, color: AppColors.primary, size: 22),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.science_outlined, color: AppColors.primary, size: 24),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1298,44 +1491,89 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(test.title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                          child: Text(
+                            test.title,
+                            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5, color: Color(0xFF0F172A)),
+                          ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(4)),
-                          child: Text(test.categoryName, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: AppColors.primaryDark)),
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            test.categoryName,
+                            style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                          ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text(test.description, style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary), maxLines: 2, overflow: TextOverflow.ellipsis),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 5),
+                    Text(
+                      test.description,
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, height: 1.3),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Price & Badges Row
                     Row(
                       children: [
-                        Text('₹${test.price.toInt()}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                        if (test.originalPrice != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFDCFCE7),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '₹${test.price.toInt()}',
+                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Color(0xFF15803D)),
+                          ),
+                        ),
+                        if (test.originalPrice != null && test.originalPrice! > test.price) ...[
                           const SizedBox(width: 6),
-                          Text('₹${test.originalPrice!.toInt()}', style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, decoration: TextDecoration.lineThrough)),
+                          Text(
+                            '₹${test.originalPrice!.toInt()}',
+                            style: const TextStyle(fontSize: 11.5, color: AppColors.textMuted, decoration: TextDecoration.lineThrough),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '(${(((test.originalPrice! - test.price) / test.originalPrice!) * 100).toInt()}% OFF)',
+                            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFFEA580C)),
+                          ),
                         ],
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         if (test.isHomeVisitAvailable)
-                          const Text('• Home Visit', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.success)),
-                        if (test.isInHouseAvailable)
-                          const Text(' • In-House', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.secondary)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(4)),
+                            child: const Text('Home Visit', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: Color(0xFF1D4ED8))),
+                          ),
+                        if (test.isInHouseAvailable) ...[
+                          const SizedBox(width: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                            decoration: BoxDecoration(color: const Color(0xFFF3E8FF), borderRadius: BorderRadius.circular(4)),
+                            child: const Text('In-House', style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w700, color: Color(0xFF7E22CE))),
+                          ),
+                        ],
                       ],
                     ),
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
               Column(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.primary),
+                    icon: const Icon(Icons.edit_outlined, size: 19, color: AppColors.primary),
                     onPressed: () => _openAddTestDialog(test),
                     tooltip: 'Edit Item',
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error),
+                    icon: const Icon(Icons.delete_outline, size: 19, color: AppColors.error),
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -1364,6 +1602,36 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildCatalogFilterChip(String filterKey, String label) {
+    final isSelected = _catalogCategoryFilter == filterKey;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _catalogCategoryFilter = filterKey;
+        });
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            color: isSelected ? Colors.white : AppColors.textPrimary,
+          ),
+        ),
+      ),
     );
   }
 
