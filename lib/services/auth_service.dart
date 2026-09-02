@@ -22,46 +22,61 @@ class AuthService {
     }
   }
 
-  // Get current user profile
+  // Get current user profile (Instant local cache first so user stays logged in across sessions)
   Future<UserProfile?> getCurrentUserProfile() async {
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final userJson = prefs.getString('cached_user_profile');
+
+      if (userJson != null && userJson.isNotEmpty) {
+        final Map<String, dynamic> data = jsonDecode(userJson);
+        final profile = UserProfile.fromMap(data, data['uid'] ?? 'user_active');
+
+        // Refresh in background without blocking instant app startup
+        if (_isFirebaseAvailable && _firestore != null && profile.email.isNotEmpty) {
+          _syncFreshProfileInBackground(profile);
+        }
+        return profile;
+      }
+
+      // If no local cache, check Firebase Auth session
       if (_isFirebaseAvailable && _auth?.currentUser != null) {
         final uid = _auth!.currentUser!.uid;
         final email = _auth!.currentUser!.email?.toLowerCase();
         if (_firestore != null) {
-          final doc = await _firestore!.collection('users').doc(uid).get();
-          if (doc.exists && doc.data() != null) {
-            return UserProfile.fromMap(doc.data()!, uid);
-          }
-          if (email != null && email.isNotEmpty) {
-            final snap = await _firestore!.collection('users').where('email', isEqualTo: email).limit(1).get();
-            if (snap.docs.isNotEmpty) {
-              return UserProfile.fromMap(snap.docs.first.data(), snap.docs.first.id);
-            }
-          }
-        }
-      }
-
-      // Check local cache
-      final prefs = await SharedPreferences.getInstance();
-      final userJson = prefs.getString('cached_user_profile');
-      if (userJson != null) {
-        final Map<String, dynamic> data = jsonDecode(userJson);
-        final profile = UserProfile.fromMap(data, data['uid'] ?? 'user_active');
-        if (_isFirebaseAvailable && _firestore != null && profile.email.isNotEmpty) {
           try {
-            final snap = await _firestore!.collection('users').where('email', isEqualTo: profile.email.toLowerCase()).limit(1).get();
-            if (snap.docs.isNotEmpty) {
-              final fresh = UserProfile.fromMap(snap.docs.first.data(), snap.docs.first.id);
-              await _cacheUserLocally(fresh);
-              return fresh;
+            final doc = await _firestore!.collection('users').doc(uid).get().timeout(const Duration(seconds: 3));
+            if (doc.exists && doc.data() != null) {
+              final profile = UserProfile.fromMap(doc.data()!, uid);
+              await _cacheUserLocally(profile);
+              return profile;
+            }
+            if (email != null && email.isNotEmpty) {
+              final snap = await _firestore!.collection('users').where('email', isEqualTo: email).limit(1).get().timeout(const Duration(seconds: 3));
+              if (snap.docs.isNotEmpty) {
+                final profile = UserProfile.fromMap(snap.docs.first.data(), snap.docs.first.id);
+                await _cacheUserLocally(profile);
+                return profile;
+              }
             }
           } catch (_) {}
         }
-        return profile;
+      }
+    } catch (e) {
+      debugPrint('getCurrentUserProfile note: $e');
+    }
+    return null;
+  }
+
+  void _syncFreshProfileInBackground(UserProfile cached) async {
+    try {
+      if (_firestore == null) return;
+      final snap = await _firestore!.collection('users').where('email', isEqualTo: cached.email.toLowerCase()).limit(1).get();
+      if (snap.docs.isNotEmpty) {
+        final fresh = UserProfile.fromMap(snap.docs.first.data(), snap.docs.first.id);
+        await _cacheUserLocally(fresh);
       }
     } catch (_) {}
-    return null;
   }
 
   // Sign in with Firebase Auth & Firestore
@@ -413,12 +428,18 @@ class AuthService {
         await _auth!.signOut();
       } catch (_) {}
     }
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('cached_user_profile');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_logged_in', false);
+      await prefs.remove('cached_user_profile');
+    } catch (_) {}
   }
 
   Future<void> _cacheUserLocally(UserProfile user) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cached_user_profile', jsonEncode(user.toMap()..['uid'] = user.uid));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('is_logged_in', true);
+      await prefs.setString('cached_user_profile', jsonEncode(user.toMap()..['uid'] = user.uid));
+    } catch (_) {}
   }
 }
