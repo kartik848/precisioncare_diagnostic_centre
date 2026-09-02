@@ -29,10 +29,10 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       duration: const Duration(milliseconds: 1800),
     );
 
-    _scaleAnimation = Tween<double>(begin: 0.75, end: 1.0).animate(
+    _scaleAnimation = Tween<double>(begin: 0.94, end: 1.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
       ),
     );
 
@@ -81,7 +81,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // Background subtle ambient gradients
@@ -124,25 +124,25 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       child: Transform.scale(
                         scale: _scaleAnimation.value,
                         child: Container(
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(28),
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(color: const Color(0xFFFECDD3), width: 1.5),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.12),
-                                blurRadius: 30,
-                                spreadRadius: 4,
-                                offset: const Offset(0, 10),
+                                color: const Color(0xFFE11D48).withOpacity(0.08),
+                                blurRadius: 20,
+                                offset: const Offset(0, 8),
                               ),
                             ],
                           ),
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(16),
                             child: Image.asset(
                               'assets/images/precisioncare_logo.jpeg',
-                              width: 140,
-                              height: 140,
+                              width: 88,
+                              height: 88,
                               fit: BoxFit.contain,
                             ),
                           ),

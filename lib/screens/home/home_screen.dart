@@ -653,7 +653,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   QuickCategoryCard(
                     title: 'Home Visit Blood Test',
                     subtitle: 'CBC, Lipid, Sugar, Thyroid',
-                    icon: Icons.water_drop_rounded,
+                    imageAsset: 'assets/images/3d/service_blood_test.jpg',
                     iconColor: AppColors.bloodTestBadge,
                     backgroundColor: AppColors.bloodTestBadge.withOpacity(0.1),
                     badge: '60 Min Dispatch',
@@ -670,7 +670,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   QuickCategoryCard(
                     title: 'Home Visit Digital X-Ray',
                     subtitle: 'Portable High-Res DR',
-                    icon: Icons.camera_enhance_rounded,
+                    imageAsset: 'assets/images/3d/service_xray.jpg',
                     iconColor: AppColors.xrayBadge,
                     backgroundColor: AppColors.xrayBadge.withOpacity(0.1),
                     badge: 'Portable DR',
@@ -687,7 +687,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   QuickCategoryCard(
                     title: 'Home Visit 12-Lead ECG',
                     subtitle: 'Instant Cardiologist Tracing',
-                    icon: Icons.monitor_heart_rounded,
+                    imageAsset: 'assets/images/3d/service_ecg.jpg',
                     iconColor: AppColors.ecgBadge,
                     backgroundColor: AppColors.ecgBadge.withOpacity(0.1),
                     badge: 'Instant',
@@ -704,7 +704,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   QuickCategoryCard(
                     title: 'Home Visit Physiotherapy',
                     subtitle: 'Ortho, Neuro & Rehab',
-                    icon: Icons.accessibility_new_rounded,
+                    imageAsset: 'assets/images/3d/service_physio.jpg',
                     iconColor: AppColors.physioBadge,
                     backgroundColor: AppColors.physioBadge.withOpacity(0.1),
                     badge: '1-on-1 Care',
@@ -748,7 +748,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildInHouseCard(
                     title: 'PFT Test (Spirometry)',
                     desc: 'Lung Capacity',
-                    icon: Icons.air_rounded,
+                    imageAsset: 'assets/images/3d/service_pft.jpg',
                     color: AppColors.pftBadge,
                     onTap: () {
                       final service = context.read<CatalogProvider>().allServices.firstWhere(
@@ -763,7 +763,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildInHouseCard(
                     title: 'Stress Test (TMT)',
                     desc: 'Bruce Protocol',
-                    icon: Icons.directions_run_rounded,
+                    imageAsset: 'assets/images/3d/doc_cardiologist.jpg',
                     color: AppColors.stressTestBadge,
                     onTap: () {
                       final service = context.read<CatalogProvider>().allServices.firstWhere(
@@ -778,7 +778,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   _buildInHouseCard(
                     title: 'Physio Setup Suite',
                     desc: 'IFT / Laser / Traction',
-                    icon: Icons.fitness_center_rounded,
+                    imageAsset: 'assets/images/3d/service_physio.jpg',
                     color: AppColors.physioBadge,
                     onTap: () {
                       final service = context.read<CatalogProvider>().allServices.firstWhere(
@@ -867,12 +867,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.all(10),
+                          width: 44,
+                          height: 44,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.12),
                             shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
                           ),
-                          child: const Icon(Icons.support_agent_rounded, color: Colors.white, size: 24),
+                          child: ClipOval(
+                            child: Image.asset('assets/images/3d/call_helpline.jpg', fit: BoxFit.cover),
+                          ),
                         ),
                         const SizedBox(width: 12),
                         const Expanded(
@@ -943,7 +946,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildInHouseCard({
     required String title,
     required String desc,
-    required IconData icon,
+    IconData? icon,
+    String? imageAsset,
     required Color color,
     required VoidCallback onTap,
   }) {
@@ -953,11 +957,11 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFFCE7EC), width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.015),
+              color: Colors.black.withOpacity(0.02),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -966,14 +970,34 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+            if (imageAsset != null)
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFFECDD3), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: color.withOpacity(0.2),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipOval(
+                  child: Image.asset(imageAsset, fit: BoxFit.cover),
+                ),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon ?? Icons.science_rounded, color: color, size: 18),
               ),
-              child: Icon(icon, color: color, size: 18),
-            ),
             const SizedBox(height: 5),
             Expanded(
               child: Column(

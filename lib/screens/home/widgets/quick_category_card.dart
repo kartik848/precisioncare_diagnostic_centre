@@ -4,7 +4,8 @@ import '../../../core/constants/app_colors.dart';
 class QuickCategoryCard extends StatelessWidget {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final IconData? icon;
+  final String? imageAsset;
   final Color iconColor;
   final Color backgroundColor;
   final String? badge;
@@ -14,7 +15,8 @@ class QuickCategoryCard extends StatelessWidget {
     super.key,
     required this.title,
     required this.subtitle,
-    required this.icon,
+    this.icon,
+    this.imageAsset,
     required this.iconColor,
     required this.backgroundColor,
     this.badge,
@@ -29,13 +31,13 @@ class QuickCategoryCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: const Color(0xFFFCE7EC), width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withOpacity(0.03),
               blurRadius: 8,
-              offset: const Offset(0, 2),
+              offset: const Offset(0, 3),
             ),
           ],
         ),
@@ -46,14 +48,36 @@ class QuickCategoryCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: backgroundColor,
-                    borderRadius: BorderRadius.circular(10),
+                if (imageAsset != null)
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFFECDD3), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: iconColor.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(imageAsset!, fit: BoxFit.cover),
+                    ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: backgroundColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(icon ?? Icons.medical_services_rounded, color: iconColor, size: 20),
                   ),
-                  child: Icon(icon, color: iconColor, size: 20),
-                ),
                 if (badge != null)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
