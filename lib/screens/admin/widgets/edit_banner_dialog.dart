@@ -222,7 +222,7 @@ class _EditBannerDialogState extends State<EditBannerDialog> {
                               style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.primaryDark),
                             ),
                             Text(
-                              _uploadedImageUrl != null ? '✅ Photo Uploaded & Linked' : 'Direct upload from Camera / Gallery',
+                              _uploadedImageUrl != null ? '✅ Photo Uploaded & Linked' : 'Recommended: 1200 x 600 px (2:1 Ratio)',
                               style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
                             ),
                           ],
