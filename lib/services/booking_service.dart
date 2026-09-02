@@ -34,6 +34,7 @@ class BookingService {
     String paymentStatus = 'Pay on Collection / Visit',
     String? utrNumber,
     String? paymentScreenshotUrl,
+    String? prescriptionUrl,
     String? notes,
   }) async {
     final bookingId = 'BK-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}';
@@ -55,6 +56,7 @@ class BookingService {
       status: BookingStatus.pendingApproval,
       utrNumber: utrNumber,
       paymentScreenshotUrl: paymentScreenshotUrl,
+      prescriptionUrl: prescriptionUrl,
       technicianName: null,
       technicianPhone: null,
       notes: notes,

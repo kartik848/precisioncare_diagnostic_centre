@@ -68,6 +68,7 @@ class BookingModel {
   final String? notes;
   final String? reportId;
   final String? reportImageUrl;
+  final String? prescriptionUrl;
   final DateTime createdAt;
 
   BookingModel({
@@ -92,6 +93,7 @@ class BookingModel {
     this.notes,
     this.reportId,
     this.reportImageUrl,
+    this.prescriptionUrl,
     DateTime? createdAt,
   }) : createdAt = createdAt ?? DateTime.now();
 
@@ -126,6 +128,7 @@ class BookingModel {
       notes: map['notes'],
       reportId: map['reportId'],
       reportImageUrl: map['reportImageUrl'],
+      prescriptionUrl: map['prescriptionUrl'],
       createdAt: _parseDateTime(map['createdAt']),
     );
   }
@@ -152,6 +155,7 @@ class BookingModel {
       'notes': notes,
       'reportId': reportId,
       'reportImageUrl': reportImageUrl,
+      'prescriptionUrl': prescriptionUrl,
       'createdAt': createdAt.toIso8601String(),
     };
   }
@@ -178,6 +182,7 @@ class BookingModel {
     String? notes,
     String? reportId,
     String? reportImageUrl,
+    String? prescriptionUrl,
     DateTime? createdAt,
   }) {
     return BookingModel(
@@ -202,6 +207,7 @@ class BookingModel {
       notes: notes ?? this.notes,
       reportId: reportId ?? this.reportId,
       reportImageUrl: reportImageUrl ?? this.reportImageUrl,
+      prescriptionUrl: prescriptionUrl ?? this.prescriptionUrl,
       createdAt: createdAt ?? this.createdAt,
     );
   }

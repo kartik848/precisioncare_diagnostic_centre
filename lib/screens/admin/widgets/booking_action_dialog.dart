@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/field_order_pdf_generator.dart';
+import '../../../core/utils/prescription_printer.dart';
 import '../../../models/booking_model.dart';
 import '../../../models/staff_model.dart';
 import '../../../providers/admin_provider.dart';
@@ -249,6 +250,102 @@ class _BookingActionDialogState extends State<BookingActionDialog> {
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                             ),
                           ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
+                // Doctor Prescription Slip Attached Card
+                if (widget.booking.prescriptionUrl != null && widget.booking.prescriptionUrl!.isNotEmpty) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF5F3FF),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFDDD6FE)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF7C3AED),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.document_scanner_rounded, size: 16, color: Colors.white),
+                            ),
+                            const SizedBox(width: 8),
+                            const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Doctor\'s Prescription Attached', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: Color(0xFF6D28D9))),
+                                Text('Verified doctor test slip attached by patient', style: TextStyle(fontSize: 10, color: Color(0xFF7C3AED))),
+                              ],
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text('Doctor\'s Prescription Slip', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                                              IconButton(icon: const Icon(Icons.close, size: 18), onPressed: () => Navigator.pop(context)),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(10),
+                                            child: AppImageView(imageUrl: widget.booking.prescriptionUrl!),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                              icon: const Icon(Icons.visibility_outlined, size: 13),
+                              label: const Text('View', style: TextStyle(fontSize: 11)),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: const Color(0xFF7C3AED),
+                                side: const BorderSide(color: Color(0xFF8B5CF6)),
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            ElevatedButton.icon(
+                              onPressed: () => PrescriptionPrinter.printPrescription(
+                                prescriptionUrl: widget.booking.prescriptionUrl!,
+                                patientName: widget.booking.patientName,
+                                patientMobile: widget.booking.patientMobile,
+                                bookingId: widget.booking.id,
+                                notes: widget.booking.notes,
+                                date: widget.booking.createdAt,
+                              ),
+                              icon: const Icon(Icons.print_rounded, size: 13, color: Colors.white),
+                              label: const Text('Print Slip', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF7C3AED),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),

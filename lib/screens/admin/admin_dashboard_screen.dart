@@ -17,6 +17,9 @@ import 'widgets/edit_banner_dialog.dart';
 import 'widgets/upload_report_dialog.dart';
 import 'widgets/send_patient_reminder_dialog.dart';
 import '../../core/utils/field_order_pdf_generator.dart';
+import '../../core/utils/prescription_printer.dart';
+import '../../models/prescription_model.dart';
+import '../../services/prescription_service.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -74,6 +77,204 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   void _openEditBannerDialog(PromoBanner banner) {
     showDialog(context: context, builder: (_) => EditBannerDialog(banner: banner));
+  }
+
+  void _openPrescriptionViewerDialog({String? targetUserId, String? targetPatientName}) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Container(
+          width: 600,
+          height: MediaQuery.of(context).size.height * 0.82,
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3E8FF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.document_scanner_rounded, color: Color(0xFF7C3AED), size: 22),
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            targetPatientName != null ? 'Prescriptions: $targetPatientName' : 'Uploaded Doctor Prescriptions',
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w800),
+                          ),
+                          const Text(
+                            'Click thumbnail to enlarge or Print official prescription slip',
+                            style: TextStyle(fontSize: 11, color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  IconButton(icon: const Icon(Icons.close, size: 20), onPressed: () => Navigator.pop(ctx)),
+                ],
+              ),
+              const Divider(height: 24),
+              Expanded(
+                child: StreamBuilder<List<PrescriptionModel>>(
+                  stream: PrescriptionService.streamAllPrescriptions(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    var prescriptions = snapshot.data ?? [];
+                    if (targetUserId != null) {
+                      prescriptions = prescriptions.where((p) => p.userId == targetUserId).toList();
+                    }
+
+                    if (prescriptions.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.assignment_outlined, size: 48, color: Colors.grey.shade400),
+                            const SizedBox(height: 10),
+                            const Text('No Prescriptions Uploaded Yet', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                            const SizedBox(height: 4),
+                            Text(
+                              targetPatientName != null
+                                  ? 'This patient has not uploaded any doctor prescription slips.'
+                                  : 'When patients upload prescription slips from the app, they will appear here.',
+                              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return ListView.separated(
+                      itemCount: prescriptions.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 10),
+                      itemBuilder: (context, index) {
+                        final item = prescriptions[index];
+                        final dateStr = DateFormat('dd MMM yyyy, hh:mm a').format(item.uploadedAt);
+
+                        return Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          child: Row(
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (_) => Dialog(
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(16),
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text('Prescription: ${item.patientName}', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                                                IconButton(icon: const Icon(Icons.close, size: 18), onPressed: () => Navigator.pop(context)),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            ClipRRect(
+                                              borderRadius: BorderRadius.circular(10),
+                                              child: AppImageView(imageUrl: item.prescriptionUrl),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    item.prescriptionUrl,
+                                    width: 56,
+                                    height: 56,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      width: 56,
+                                      height: 56,
+                                      color: Colors.grey.shade200,
+                                      child: const Icon(Icons.image_not_supported_outlined, size: 24, color: Colors.grey),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(item.patientName, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
+                                        const SizedBox(width: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: const Color(0xFFDCFCE7),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(item.status, style: const TextStyle(fontSize: 8.5, fontWeight: FontWeight.w800, color: Color(0xFF15803D))),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text('📱 ${item.patientPhone} • $dateStr', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                    if (item.notes != null && item.notes!.isNotEmpty) ...[
+                                      const SizedBox(height: 2),
+                                      Text('Notes: "${item.notes}"', style: const TextStyle(fontSize: 10.5, fontStyle: FontStyle.italic, color: AppColors.textMuted)),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                              ElevatedButton.icon(
+                                onPressed: () => PrescriptionPrinter.printPrescription(
+                                  prescriptionUrl: item.prescriptionUrl,
+                                  patientName: item.patientName,
+                                  patientMobile: item.patientPhone,
+                                  notes: item.notes,
+                                  date: item.uploadedAt,
+                                ),
+                                icon: const Icon(Icons.print_rounded, size: 14, color: Colors.white),
+                                label: const Text('Print', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w700)),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF7C3AED),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -1313,11 +1514,22 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     Text('Total registered patients: ${users.length}', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _openSendReminderDialog(),
-                  icon: const Icon(Icons.campaign_rounded, size: 14, color: Colors.white),
-                  label: const Text('Broadcast Alert', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+                Row(
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _openPrescriptionViewerDialog(),
+                      icon: const Icon(Icons.document_scanner_rounded, size: 14, color: Colors.white),
+                      label: const Text('Prescriptions', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C3AED), padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () => _openSendReminderDialog(),
+                      icon: const Icon(Icons.campaign_rounded, size: 14, color: Colors.white),
+                      label: const Text('Broadcast Alert', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(backgroundColor: AppColors.accent, padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8)),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1372,6 +1584,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
               Column(
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.description_outlined, size: 18, color: Color(0xFF7C3AED)),
+                    tooltip: 'View & Print Doctor Prescriptions',
+                    onPressed: () => _openPrescriptionViewerDialog(targetUserId: user.uid, targetPatientName: user.name),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.alarm_add_rounded, size: 18, color: AppColors.accent),
                     tooltip: 'Send Test Due Reminder',

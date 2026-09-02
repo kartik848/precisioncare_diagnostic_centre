@@ -74,6 +74,7 @@ class BookingProvider with ChangeNotifier {
     String paymentStatus = 'Pay on Collection / Visit',
     String? utrNumber,
     String? paymentScreenshotUrl,
+    String? prescriptionUrl,
     String? notes,
   }) async {
     _isLoading = true;
@@ -96,6 +97,7 @@ class BookingProvider with ChangeNotifier {
         paymentStatus: paymentStatus,
         utrNumber: utrNumber,
         paymentScreenshotUrl: paymentScreenshotUrl,
+        prescriptionUrl: prescriptionUrl,
         notes: notes,
       );
 

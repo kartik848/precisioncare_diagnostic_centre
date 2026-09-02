@@ -39,6 +39,10 @@ class _ScheduleBookingScreenState extends State<ScheduleBookingScreen> {
   String? _paymentScreenshotUrl;
   bool _isUploadingProof = false;
 
+  // Doctor's Prescription Attachment
+  String? _prescriptionUrl;
+  bool _isUploadingPrescription = false;
+
   // Patient info controllers
   bool _isForSelf = true;
   final _patientNameController = TextEditingController();
@@ -98,6 +102,30 @@ class _ScheduleBookingScreenState extends State<ScheduleBookingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('UPI payment screenshot attached!'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
+  }
+
+  Future<void> _pickPrescriptionPhoto() async {
+    setState(() => _isUploadingPrescription = true);
+    final url = await ImgBBService.pickAndUploadImage(
+      context,
+      allowCamera: true,
+      imageName: 'booking_rx_${DateTime.now().millisecondsSinceEpoch}',
+    );
+
+    if (!mounted) return;
+    setState(() {
+      _isUploadingPrescription = false;
+      if (url != null) _prescriptionUrl = url;
+    });
+
+    if (url != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Doctor\'s prescription attached to booking!'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -276,6 +304,7 @@ class _ScheduleBookingScreenState extends State<ScheduleBookingScreen> {
       paymentStatus: finalPaymentStatus,
       utrNumber: isOnlinePayment ? _utrController.text.trim() : null,
       paymentScreenshotUrl: isOnlinePayment ? _paymentScreenshotUrl : null,
+      prescriptionUrl: _prescriptionUrl,
       notes: _notesController.text.trim(),
     );
 
@@ -869,6 +898,116 @@ class _ScheduleBookingScreenState extends State<ScheduleBookingScreen> {
                       label: 'Special Instructions / Clinical Notes (Optional)',
                       hint: 'e.g. Ring bell twice / Patient is bedridden / Morning fasting sample',
                       prefixIcon: Icons.notes_rounded,
+                    ),
+                    const SizedBox(height: 14),
+
+                    // Doctor Prescription Attachment Box
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: _prescriptionUrl != null ? AppColors.success : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEFF6FF),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.description_outlined, color: Color(0xFF2563EB), size: 18),
+                              ),
+                              const SizedBox(width: 8),
+                              const Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Doctor\'s Prescription Slip (Optional)',
+                                      style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                                    ),
+                                    Text(
+                                      'Attach photo of prescription for lab doctor verification',
+                                      style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          if (_isUploadingPrescription)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                                    SizedBox(width: 10),
+                                    Text('Uploading prescription photo...', style: TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else if (_prescriptionUrl != null)
+                            Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image.network(
+                                    _prescriptionUrl!,
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '✅ Prescription Attached',
+                                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.success),
+                                      ),
+                                      Text(
+                                        'Lab team will verify against this slip',
+                                        style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.close, color: AppColors.error, size: 20),
+                                  tooltip: 'Remove prescription',
+                                  onPressed: () => setState(() => _prescriptionUrl = null),
+                                ),
+                              ],
+                            )
+                          else
+                            OutlinedButton.icon(
+                              onPressed: _pickPrescriptionPhoto,
+                              icon: const Icon(Icons.add_a_photo_outlined, size: 16, color: AppColors.primary),
+                              label: const Text(
+                                'Attach Doctor Prescription (Camera / Gallery)',
+                                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.primary),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 38),
+                                side: const BorderSide(color: AppColors.primary, width: 1.2),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
                   ],
                 ),

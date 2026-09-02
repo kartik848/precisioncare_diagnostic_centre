@@ -18,6 +18,10 @@ import '../notifications/notification_center_screen.dart';
 import 'widgets/banner_carousel.dart';
 import 'widgets/quick_category_card.dart';
 import 'widgets/trust_badges_section.dart';
+import 'widgets/tata_quick_actions.dart';
+import 'widgets/doctor_specialists_section.dart';
+import 'widgets/upload_prescription_sheet.dart';
+import '../../services/location_service.dart';
 
 class HomeScreen extends StatefulWidget {
   final Function(int index)? onNavigateTab;
@@ -29,12 +33,30 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String _detectedLocation = 'Kondhwa, Pune 411048';
+  bool _isLocating = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AuthProvider>().refreshUser();
+      _initLocation();
     });
+  }
+
+  Future<void> _initLocation() async {
+    final cached = await LocationService.getSavedLocation();
+    if (mounted) setState(() => _detectedLocation = cached);
+
+    setState(() => _isLocating = true);
+    final live = await LocationService.fetchCurrentDeviceLocation();
+    if (mounted) {
+      setState(() {
+        _isLocating = false;
+        if (live != null) _detectedLocation = live;
+      });
+    }
   }
 
   String _getGreeting() {
@@ -133,13 +155,33 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    _initLocation();
+                  },
+                  icon: const Icon(Icons.my_location_rounded, size: 16, color: AppColors.primary),
+                  label: const Text('Detect Live GPS Location', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: AppColors.primary, width: 1.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () => Navigator.pop(ctx),
                   icon: const Icon(Icons.check_rounded, size: 18),
-                  label: const Text('Close Details'),
+                  label: const Text('Confirm Location'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
                 ),
               ),
             ],
@@ -324,28 +366,71 @@ class _HomeScreenState extends State<HomeScreen> {
                     const Divider(height: 1, color: AppColors.divider),
                     const SizedBox(height: 8),
 
-                    // PUNE CENTRE LOCATIONS BADGE STRIP
+                    // TATA 1MG STYLE LIVE LOCATION BAR
                     GestureDetector(
                       onTap: () => _showBranchLocationsSheet(context),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
                         decoration: BoxDecoration(
                           color: const Color(0xFFF1F5F9),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.location_pin, color: AppColors.primary, size: 15),
-                            SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: AppColors.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.near_me_rounded, color: Colors.white, size: 12),
+                            ),
+                            const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                'Pune Centres: Kondhwa Lullanagar & Parmar Pavan',
-                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Delivering & Sample Collection in',
+                                    style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          _detectedLocation,
+                                          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      const Icon(Icons.keyboard_arrow_down_rounded, size: 15, color: AppColors.primary),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
-                            Icon(Icons.keyboard_arrow_right_rounded, size: 16, color: AppColors.textMuted),
+                            if (_isLocating)
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                              )
+                            else
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFFCBD5E1)),
+                                ),
+                                child: const Text(
+                                  'Change',
+                                  style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.primary),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -511,6 +596,36 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
               const SizedBox(height: 18),
+
+              // 4.1 TATA 1MG 4 TOP QUICK ACTIONS
+              TataQuickActions(
+                onFullBodyTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const CatalogScreen(initialCategory: 'Full Body Checkups'),
+                    ),
+                  );
+                },
+                onCallTap: () => ContactHelper.callHelpline(context),
+                onWhatsAppTap: () => ContactHelper.openWhatsApp(
+                  context,
+                  customMessage: 'Hello PrecisionCare Diagnostic Centre, I would like to book a diagnostic test.',
+                ),
+                onUploadPrescriptionTap: () => UploadPrescriptionSheet.show(context),
+              ),
+              const SizedBox(height: 20),
+
+              // 4.2 TATA 1MG 3D CARTOON DOCTOR SPECIALISTS
+              DoctorSpecialistsSection(
+                onSpecialtyTap: (category) {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => CatalogScreen(initialCategory: category),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 20),
 
               // 5. HOME VISIT SERVICES GRID
               SectionHeader(
