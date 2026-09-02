@@ -31,12 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _fillDemoCredentials(String email, String password) {
-    _emailController.text = email;
-    _passwordController.text = password;
-    setState(() {});
-  }
-
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -331,28 +325,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               }
                               return null;
                             },
-                          ),
-                          const SizedBox(height: 14),
-
-                          // 1-Tap Quick Credentials Chips
-                          Row(
-                            children: [
-                              const Text('Quick Fill:', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.textSecondary)),
-                              const SizedBox(width: 6),
-                              InkWell(
-                                onTap: () => _fillDemoCredentials('kartik@test.com', 'password123'),
-                                borderRadius: BorderRadius.circular(6),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFFF0F3),
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: const Color(0xFFFECDD3)),
-                                  ),
-                                  child: const Text('kartik@test.com', style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w800, color: Color(0xFFBE123C))),
-                                ),
-                              ),
-                            ],
                           ),
                           const SizedBox(height: 20),
 
