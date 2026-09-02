@@ -1642,54 +1642,116 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       itemCount: banners.length + 1,
       itemBuilder: (context, index) {
         if (index == 0) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          return Column(
+            children: [
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Top Home Carousel Banners & Offers', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFDCFCE7),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: const Color(0xFF86EFAC)),
-                          ),
-                          child: const Text('Ratio 2:1 (1200x600 px)', style: TextStyle(color: Color(0xFF15803D), fontSize: 9.5, fontWeight: FontWeight.w800)),
+                        const Text(
+                          'Top Home Carousel Banners & Offers',
+                          style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14.5),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Active promotional slides: ${banners.length} • Exact Ratio: 2:1',
+                          style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 3),
-                    Text('Active promotional slides: ${banners.length} • Recommended Image Size: 1200 x 600 px (2:1 Ratio)', style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
+                    ElevatedButton.icon(
+                      onPressed: () => _openEditBannerDialog(
+                        PromoBanner(
+                          id: 'BANNER-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
+                          title: '',
+                          subtitle: '',
+                          badge: 'SPECIAL OFFER',
+                        ),
+                      ),
+                      icon: const Icon(Icons.add, size: 15, color: Colors.white),
+                      label: const Text('New Banner', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w800)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
                   ],
                 ),
-                ElevatedButton.icon(
-                  onPressed: () => _openEditBannerDialog(
-                    PromoBanner(
-                      id: 'BANNER-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
-                      title: 'Special Health Package',
-                      subtitle: 'Flat 20% OFF on Full Body Tests',
-                      badge: 'SPECIAL OFFER',
-                    ),
-                  ),
-                  icon: const Icon(Icons.add, size: 14, color: Colors.white),
-                  label: const Text('New Banner', style: TextStyle(fontSize: 11.5, color: Colors.white, fontWeight: FontWeight.w700)),
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8)),
+              ),
+
+              // Banner Dimensions & Ratio Info Card
+              Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFF86EFAC)),
                 ),
-              ],
-            ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFDCFCE7),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.aspect_ratio_rounded, color: Color(0xFF16A34A), size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Accurate Banner Ratio: 2:1 (Width : Height)',
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w900, color: Color(0xFF15803D)),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                '• 100% No-Crop Fit',
+                                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF16A34A)),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            '🌟 Canva Size: 1200 × 600 px  |  📱 Mobile Size: 1000 × 500 px  |  ⚡ HD: 800 × 400 px',
+                            style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+                          ),
+                          SizedBox(height: 3),
+                          Text(
+                            'Canva me Custom Size daalein: 1200 x 600 px. Yeh size patient app me bilkul accurate bina cut hue fit hoga.',
+                            style: TextStyle(fontSize: 11, color: Color(0xFF166534)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           );
         }
 
