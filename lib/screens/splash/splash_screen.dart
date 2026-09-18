@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/booking_provider.dart';
 import '../../providers/report_provider.dart';
 import '../../providers/notification_provider.dart';
+import '../../widgets/motion_logo_widget.dart';
 import '../auth/login_screen.dart';
 import '../home/main_navigation_screen.dart';
 
@@ -159,43 +160,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Animated Logo
-                AnimatedBuilder(
-                  animation: _controller,
-                  builder: (context, child) {
-                    return Opacity(
-                      opacity: _opacityAnimation.value,
-                      child: Transform.scale(
-                        scale: _scaleAnimation.value,
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(22),
-                            border: Border.all(color: const Color(0xFFFECDD3), width: 1.5),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFFE11D48).withOpacity(0.08),
-                                blurRadius: 20,
-                                offset: const Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.asset(
-                              'assets/images/precisioncare_logo.jpeg',
-                              width: 88,
-                              height: 88,
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
+                // Animated Motion Logo
+                FadeTransition(
+                  opacity: _opacityAnimation,
+                  child: ScaleTransition(
+                    scale: _scaleAnimation,
+                    child: const MotionLogo(
+                      size: 88,
+                      showRipples: true,
+                      showShimmer: true,
+                      showFloating: true,
+                      showHeartbeat: true,
+                      badgeText: 'NABL',
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
                 // Animated Text
                 SlideTransition(

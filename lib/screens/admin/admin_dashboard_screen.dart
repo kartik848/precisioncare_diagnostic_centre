@@ -12,14 +12,17 @@ import '../../widgets/app_image_view.dart';
 import '../../widgets/empty_state.dart';
 import 'widgets/add_staff_dialog.dart';
 import 'widgets/add_test_dialog.dart';
+import 'widgets/add_category_dialog.dart';
 import 'widgets/booking_action_dialog.dart';
 import 'widgets/edit_banner_dialog.dart';
 import 'widgets/upload_report_dialog.dart';
 import 'widgets/send_patient_reminder_dialog.dart';
 import '../../core/utils/field_order_pdf_generator.dart';
 import '../../core/utils/prescription_printer.dart';
+import '../../models/diagnostic_category.dart';
 import '../../models/prescription_model.dart';
 import '../../services/prescription_service.dart';
+import '../../widgets/motion_logo_widget.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -83,6 +86,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   void _openAddTestDialog([DiagnosticService? service]) {
     showDialog(context: context, builder: (_) => AddTestDialog(testToEdit: service));
+  }
+
+  void _openAddCategoryDialog([DiagnosticCategory? category]) {
+    showDialog(context: context, builder: (_) => AddCategoryDialog(categoryToEdit: category));
   }
 
   void _openEditBannerDialog(PromoBanner banner) {
@@ -443,18 +450,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset('assets/images/precisioncare_logo.jpeg', fit: BoxFit.contain),
-                    ),
+                  const MotionLogo(
+                    size: 36,
+                    showRipples: false,
+                    showFloating: true,
+                    showHeartbeat: true,
                   ),
                   const SizedBox(width: 12),
                   const Expanded(
@@ -1248,18 +1248,95 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   // 4. TEST CATALOG TAB WITH SEARCH & PRICE FILTERING
   Widget _buildCatalogTab(List<DiagnosticService> catalog) {
-    // 1. Filter by category
+    final categories = context.watch<AdminProvider>().categories;
+
+    // 1. Strict Category Filtering
     var filtered = catalog.where((test) {
+      if (_catalogCategoryFilter == 'All') return true;
+
+      // Legacy broad filters
       if (_catalogCategoryFilter == 'Home Visits') {
         return test.isHomeVisitAvailable || test.category == ServiceCategory.homeVisit;
       } else if (_catalogCategoryFilter == 'In-House') {
         return test.isInHouseAvailable || test.category == ServiceCategory.inHouseDiagnostic;
-      } else if (_catalogCategoryFilter == 'Physio') {
-        return test.category == ServiceCategory.physiotherapy;
-      } else if (_catalogCategoryFilter == 'Packages') {
-        return test.category == ServiceCategory.healthPackage;
       }
-      return true;
+
+      final filterLower = _catalogCategoryFilter.trim().toLowerCase();
+
+      // 1. Digital X-Ray - STRICT: ONLY X-Ray tests!
+      if (filterLower.contains('x-ray') || filterLower.contains('xray')) {
+        return test.categoryId == 'cat_xray' ||
+            test.iconType == 'xray' ||
+            test.categoryName.toLowerCase().contains('x-ray') ||
+            test.categoryName.toLowerCase().contains('xray') ||
+            test.title.toLowerCase().contains('x-ray') ||
+            test.title.toLowerCase().contains('xray');
+      }
+
+      // 2. Blood Tests - STRICT: ONLY Blood tests!
+      if (filterLower.contains('blood')) {
+        final isXray = test.iconType == 'xray' ||
+            test.title.toLowerCase().contains('x-ray') ||
+            test.title.toLowerCase().contains('xray');
+        if (isXray || test.categoryId == 'cat_packages' || test.category == ServiceCategory.healthPackage) return false;
+        return test.categoryId == 'cat_blood' ||
+            test.iconType == 'blood' ||
+            test.categoryName.toLowerCase().contains('blood') ||
+            test.title.toLowerCase().contains('blood') ||
+            test.title.toLowerCase().contains('cbc') ||
+            test.title.toLowerCase().contains('lipid') ||
+            test.title.toLowerCase().contains('thyroid') ||
+            test.title.toLowerCase().contains('diabetes');
+      }
+
+      // 3. ECG & Cardiology - STRICT: ONLY ECG / Cardio tests!
+      if (filterLower.contains('ecg') || filterLower.contains('cardio') || filterLower.contains('heart')) {
+        return test.categoryId == 'cat_ecg' ||
+            test.iconType == 'ecg' ||
+            test.iconType == 'stress_test' ||
+            test.categoryName.toLowerCase().contains('ecg') ||
+            test.title.toLowerCase().contains('ecg') ||
+            test.title.toLowerCase().contains('stress test') ||
+            test.title.toLowerCase().contains('echocardiography');
+      }
+
+      // 4. Ultrasound (USG) - STRICT: ONLY Ultrasound tests!
+      if (filterLower.contains('usg') || filterLower.contains('ultrasound') || filterLower.contains('sonography')) {
+        return test.categoryId == 'cat_usg' ||
+            test.iconType == 'usg' ||
+            test.categoryName.toLowerCase().contains('ultrasound') ||
+            test.categoryName.toLowerCase().contains('usg') ||
+            test.title.toLowerCase().contains('ultrasound');
+      }
+
+      // 5. PFT (Lung Test) - STRICT: ONLY PFT / Spirometry!
+      if (filterLower.contains('pft') || filterLower.contains('spirometry') || filterLower.contains('lung')) {
+        return test.categoryId == 'cat_pft' ||
+            test.iconType == 'pft' ||
+            test.categoryName.toLowerCase().contains('pft') ||
+            test.title.toLowerCase().contains('pft') ||
+            test.title.toLowerCase().contains('spirometry');
+      }
+
+      // 6. Physiotherapy - STRICT: ONLY Physiotherapy!
+      if (filterLower.contains('physio')) {
+        return test.categoryId == 'cat_physio' ||
+            test.category == ServiceCategory.physiotherapy ||
+            test.iconType == 'physio' ||
+            test.categoryName.toLowerCase().contains('physio');
+      }
+
+      // 7. Health Packages - STRICT: Packages!
+      if (filterLower.contains('package') || filterLower.contains('full body')) {
+        return test.categoryId == 'cat_packages' ||
+            test.category == ServiceCategory.healthPackage ||
+            test.categoryName.toLowerCase().contains('package') ||
+            test.includedTests.length > 5;
+      }
+
+      // 8. Custom Categories created by Admin
+      return (test.categoryId != null && test.categoryId!.toLowerCase() == filterLower) ||
+          test.categoryName.trim().toLowerCase() == filterLower;
     }).toList();
 
     // 2. Filter by search query (name, category, price, description)
@@ -1304,7 +1381,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Top Row: Title + Add Button
+                // Top Row: Title + Add Category & Add Test Buttons
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1324,15 +1401,32 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ],
                       ),
                     ),
-                    ElevatedButton.icon(
-                      onPressed: () => _openAddTestDialog(),
-                      icon: const Icon(Icons.add_circle_outline, size: 15, color: Colors.white),
-                      label: const Text('Add to Catalog', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w800)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        // Add Category Button
+                        OutlinedButton.icon(
+                          onPressed: () => _openAddCategoryDialog(),
+                          icon: const Icon(Icons.category_rounded, size: 14, color: AppColors.primary),
+                          label: const Text('+ Category', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w800)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.primary, width: 1.3),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                        // Add Test Button
+                        ElevatedButton.icon(
+                          onPressed: () => _openAddTestDialog(),
+                          icon: const Icon(Icons.add_circle_outline, size: 15, color: Colors.white),
+                          label: const Text('Add Test', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w800)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -1354,7 +1448,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'Search by test name, category, or price (e.g. Thyroid, ECG, 499)...',
+                      hintText: 'Search by test name, category, or price (e.g. Thyroid, X-Ray, 499)...',
                       hintStyle: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
                       prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.primary),
                       suffixIcon: _catalogSearchQuery.isNotEmpty
@@ -1376,20 +1470,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Category Filter Chips
+                // Dynamic Category Filter Chips
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
                       _buildCatalogFilterChip('All', 'All (${catalog.length})'),
                       const SizedBox(width: 8),
-                      _buildCatalogFilterChip('Home Visits', 'Home Visits'),
-                      const SizedBox(width: 8),
-                      _buildCatalogFilterChip('In-House', 'In-House'),
-                      const SizedBox(width: 8),
-                      _buildCatalogFilterChip('Physio', 'Physiotherapy'),
-                      const SizedBox(width: 8),
-                      _buildCatalogFilterChip('Packages', 'Packages'),
+                      ...categories.map((cat) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: _buildCatalogFilterChip(cat.name, cat.name),
+                        );
+                      }),
                     ],
                   ),
                 ),

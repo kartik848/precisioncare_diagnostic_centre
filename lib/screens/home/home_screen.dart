@@ -658,29 +658,21 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: AppColors.bloodTestBadge.withOpacity(0.1),
                     badge: '60 Min Dispatch',
                     onTap: () {
-                      final service = context.read<CatalogProvider>().allServices.firstWhere(
-                            (s) => s.id == 'bt_full_body',
-                            orElse: () => CatalogService.initialServices.first,
-                          );
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => ScheduleBookingScreen(preSelectedService: service)),
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'Blood Tests')),
                       );
                     },
                   ),
                   QuickCategoryCard(
                     title: 'Home Visit Digital X-Ray',
-                    subtitle: 'Portable High-Res DR',
+                    subtitle: 'Chest, Spine, Knee DR',
                     imageAsset: 'assets/images/3d/service_xray.jpg',
                     iconColor: AppColors.xrayBadge,
                     backgroundColor: AppColors.xrayBadge.withOpacity(0.1),
                     badge: 'Portable DR',
                     onTap: () {
-                      final service = context.read<CatalogProvider>().allServices.firstWhere(
-                            (s) => s.id == 'xr_chest_home',
-                            orElse: () => CatalogService.initialServices[5],
-                          );
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => ScheduleBookingScreen(preSelectedService: service)),
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'Digital X-Ray')),
                       );
                     },
                   ),
@@ -692,12 +684,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: AppColors.ecgBadge.withOpacity(0.1),
                     badge: 'Instant',
                     onTap: () {
-                      final service = context.read<CatalogProvider>().allServices.firstWhere(
-                            (s) => s.id == 'ecg_home',
-                            orElse: () => CatalogService.initialServices[7],
-                          );
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => ScheduleBookingScreen(preSelectedService: service)),
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'ECG & Cardiology')),
                       );
                     },
                   ),
@@ -709,12 +697,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundColor: AppColors.physioBadge.withOpacity(0.1),
                     badge: '1-on-1 Care',
                     onTap: () {
-                      final service = context.read<CatalogProvider>().allServices.firstWhere(
-                            (s) => s.id == 'physio_home_ortho',
-                            orElse: () => CatalogService.initialServices[8],
-                          );
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => ScheduleBookingScreen(preSelectedService: service)),
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'Physiotherapy')),
                       );
                     },
                   ),
@@ -751,12 +735,52 @@ class _HomeScreenState extends State<HomeScreen> {
                     imageAsset: 'assets/images/3d/service_pft.jpg',
                     color: AppColors.pftBadge,
                     onTap: () {
-                      final service = context.read<CatalogProvider>().allServices.firstWhere(
-                            (s) => s.id == 'pft_inhouse',
-                            orElse: () => CatalogService.initialServices[10],
-                          );
                       Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => ScheduleBookingScreen(preSelectedService: service)),
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'PFT (Lung Test)')),
+                      );
+                    },
+                  ),
+                  _buildInHouseCard(
+                    title: 'Cardiac Stress (TMT)',
+                    desc: 'Bruce Protocol',
+                    imageAsset: 'assets/images/3d/doc_cardiologist.jpg',
+                    color: AppColors.stressTestBadge,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'ECG & Cardiology')),
+                      );
+                    },
+                  ),
+                  _buildInHouseCard(
+                    title: 'Physio Rehab Suite',
+                    desc: 'Laser / IFT / Trac',
+                    imageAsset: 'assets/images/3d/service_physio.jpg',
+                    color: AppColors.physioBadge,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'Physiotherapy')),
+                      );
+                    },
+                  ),
+                  _buildInHouseCard(
+                    title: '2D Echocardiography',
+                    desc: 'Color Doppler',
+                    imageAsset: 'assets/images/3d/service_ecg.jpg',
+                    color: AppColors.ecgBadge,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'ECG & Cardiology')),
+                      );
+                    },
+                  ),
+                  _buildInHouseCard(
+                    title: 'Ultrasound (USG)',
+                    desc: '4D Sonography',
+                    imageAsset: 'assets/images/3d/female_doctor.jpg',
+                    color: AppColors.xrayBadge,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const CatalogScreen(initialCategory: 'Ultrasound (USG)')),
                       );
                     },
                   ),

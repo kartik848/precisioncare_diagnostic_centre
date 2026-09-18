@@ -44,6 +44,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   Widget build(BuildContext context) {
     final catalog = context.watch<CatalogProvider>();
     final services = catalog.filteredServices;
+    final dynamicCategories = ['All', ...catalog.categories.map((c) => c.name)];
 
     return Scaffold(
       appBar: AppBar(
@@ -80,12 +81,13 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 ),
                 const SizedBox(height: 12),
 
-                // Category Pills
+                // Dynamic Category Pills
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
-                    children: _categories.map((category) {
-                      final isSelected = catalog.selectedCategoryFilter == category;
+                    children: dynamicCategories.map((category) {
+                      final isSelected = catalog.selectedCategoryFilter.toLowerCase() == category.toLowerCase() ||
+                          (category == 'All' && catalog.selectedCategoryFilter == 'All');
                       return Padding(
                         padding: const EdgeInsets.only(right: 8),
                         child: FilterChip(
@@ -101,6 +103,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
                           ),
                           side: BorderSide(
                             color: isSelected ? AppColors.primary : AppColors.border,
+                            width: isSelected ? 1.5 : 1.0,
                           ),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                           showCheckmark: false,

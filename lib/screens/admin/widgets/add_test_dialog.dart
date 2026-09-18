@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../models/diagnostic_category.dart';
 import '../../../models/diagnostic_service.dart';
 import '../../../providers/admin_provider.dart';
 import '../../../providers/catalog_provider.dart';
 import '../../../widgets/custom_button.dart';
 import '../../../widgets/custom_text_field.dart';
+import 'add_category_dialog.dart';
 
 class AddTestDialog extends StatefulWidget {
   final DiagnosticService? testToEdit;
@@ -29,18 +31,19 @@ class _AddTestDialogState extends State<AddTestDialog> {
   late TextEditingController _tatController;
   late TextEditingController _badgeController;
 
+  String? _selectedCategoryId;
   String _iconType = 'blood';
   ServiceCategory _category = ServiceCategory.homeVisit;
   bool _isHomeVisitAvailable = true;
   bool _isInHouseAvailable = true;
 
-  final List<String> _iconOptions = ['blood', 'xray', 'ecg', 'physio', 'pft', 'heart', 'body'];
+  final List<String> _iconOptions = ['blood', 'xray', 'ecg', 'physio', 'pft', 'usg', 'heart', 'body'];
 
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController(text: widget.testToEdit?.title ?? '');
-    _categoryNameController = TextEditingController(text: widget.testToEdit?.categoryName ?? 'Home Visit Blood Test');
+    _categoryNameController = TextEditingController(text: widget.testToEdit?.categoryName ?? 'Digital X-Ray');
     _priceController = TextEditingController(text: widget.testToEdit?.price.toInt().toString() ?? '499');
     _origPriceController = TextEditingController(text: widget.testToEdit?.originalPrice?.toInt().toString() ?? '899');
     _descController = TextEditingController(text: widget.testToEdit?.description ?? 'Comprehensive diagnostic investigation with verified laboratory reporting.');
@@ -50,6 +53,7 @@ class _AddTestDialogState extends State<AddTestDialog> {
     _badgeController = TextEditingController(text: widget.testToEdit?.badge ?? 'Popular');
 
     if (widget.testToEdit != null) {
+      _selectedCategoryId = widget.testToEdit!.categoryId;
       _iconType = widget.testToEdit!.iconType;
       _category = widget.testToEdit!.category;
       _isHomeVisitAvailable = widget.testToEdit!.isHomeVisitAvailable;
@@ -82,6 +86,7 @@ class _AddTestDialogState extends State<AddTestDialog> {
       id: id,
       title: _titleController.text.trim(),
       categoryName: _categoryNameController.text.trim(),
+      categoryId: _selectedCategoryId,
       category: _category,
       description: _descController.text.trim(),
       price: price,
@@ -105,7 +110,7 @@ class _AddTestDialogState extends State<AddTestDialog> {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('${service.title} added to Live Patient App Catalog!'),
+          content: Text('${service.title} saved under ${service.categoryName}!'),
           backgroundColor: AppColors.success,
         ),
       );
@@ -115,6 +120,14 @@ class _AddTestDialogState extends State<AddTestDialog> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.testToEdit != null;
+    final adminCats = context.watch<AdminProvider>().categories;
+
+    // Ensure _selectedCategoryId is valid
+    if (_selectedCategoryId == null && adminCats.isNotEmpty) {
+      _selectedCategoryId = adminCats.first.id;
+      _categoryNameController.text = adminCats.first.name;
+      _iconType = adminCats.first.iconType;
+    }
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -154,68 +167,133 @@ class _AddTestDialogState extends State<AddTestDialog> {
                       CustomTextField(
                         controller: _titleController,
                         label: 'Package / Investigation Name *',
-                        hint: 'e.g. Thyroid Profile Total (T3, T4, TSH)',
+                        hint: 'e.g. Digital Chest X-Ray PA View, Thyroid Profile...',
                         prefixIcon: Icons.medical_services_outlined,
                         validator: (v) => v == null || v.trim().isEmpty ? 'Enter name' : null,
                       ),
                       const SizedBox(height: 12),
 
-                      // Category & Icon Row
+                      // Category Selector with + Add New Category button
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Category
-                          Expanded(
-                            flex: 3,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text('Category Type *', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: AppColors.border),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<ServiceCategory>(
-                                      value: _category,
-                                      isExpanded: true,
-                                      items: const [
-                                        DropdownMenuItem(value: ServiceCategory.homeVisit, child: Text('Home Visit Blood', style: TextStyle(fontSize: 12))),
-                                        DropdownMenuItem(value: ServiceCategory.inHouseDiagnostic, child: Text('In-House (PFT/Stress)', style: TextStyle(fontSize: 12))),
-                                        DropdownMenuItem(value: ServiceCategory.physiotherapy, child: Text('Physiotherapy', style: TextStyle(fontSize: 12))),
-                                        DropdownMenuItem(value: ServiceCategory.healthPackage, child: Text('Health Package', style: TextStyle(fontSize: 12))),
-                                      ],
-                                      onChanged: (val) {
-                                        if (val != null) {
-                                          setState(() {
-                                            _category = val;
-                                            if (val == ServiceCategory.physiotherapy) {
-                                              _categoryNameController.text = 'Physiotherapy & Rehab';
-                                              _iconType = 'physio';
-                                            } else if (val == ServiceCategory.inHouseDiagnostic) {
-                                              _categoryNameController.text = 'In-House Centre Diagnostic';
-                                              _iconType = 'pft';
-                                            } else if (val == ServiceCategory.healthPackage) {
-                                              _categoryNameController.text = 'Health Checkup Package';
-                                              _iconType = 'body';
-                                            } else {
-                                              _categoryNameController.text = 'Home Visit Blood Test';
-                                              _iconType = 'blood';
-                                            }
-                                          });
-                                        }
-                                      },
+                          const Text('Select Category *', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700)),
+                          InkWell(
+                            onTap: () async {
+                              final newCat = await showDialog<DiagnosticCategory>(
+                                context: context,
+                                builder: (_) => const AddCategoryDialog(),
+                              );
+                              if (newCat != null && mounted) {
+                                setState(() {
+                                  _selectedCategoryId = newCat.id;
+                                  _categoryNameController.text = newCat.name;
+                                  _iconType = newCat.iconType;
+                                });
+                              }
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.add_rounded, size: 14, color: AppColors.primary),
+                                  SizedBox(width: 2),
+                                  Text(
+                                    '+ Add New Category',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w800,
+                                      color: AppColors.primary,
+                                      decoration: TextDecoration.underline,
                                     ),
                                   ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: adminCats.any((c) => c.id == _selectedCategoryId)
+                                ? _selectedCategoryId
+                                : (adminCats.isNotEmpty ? adminCats.first.id : null),
+                            isExpanded: true,
+                            items: adminCats.map((cat) {
+                              return DropdownMenuItem<String>(
+                                value: cat.id,
+                                child: Row(
+                                  children: [
+                                    Icon(cat.iconData, size: 16, color: cat.color),
+                                    const SizedBox(width: 8),
+                                    Text(cat.name, style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                                    if (cat.badge.isNotEmpty) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                                        decoration: BoxDecoration(
+                                          color: cat.color.withOpacity(0.12),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          cat.badge,
+                                          style: TextStyle(fontSize: 9, fontWeight: FontWeight.w700, color: cat.color),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                              ],
+                              );
+                            }).toList(),
+                            onChanged: (catId) {
+                              if (catId != null) {
+                                final found = adminCats.firstWhere(
+                                  (c) => c.id == catId,
+                                  orElse: () => adminCats.first,
+                                );
+                                setState(() {
+                                  _selectedCategoryId = found.id;
+                                  _categoryNameController.text = found.name;
+                                  _iconType = found.iconType;
+                                  if (found.id == 'cat_physio') {
+                                    _category = ServiceCategory.physiotherapy;
+                                  } else if (found.id == 'cat_packages') {
+                                    _category = ServiceCategory.healthPackage;
+                                  } else if (found.isHomeVisitAvailable) {
+                                    _category = ServiceCategory.homeVisit;
+                                  } else {
+                                    _category = ServiceCategory.inHouseDiagnostic;
+                                  }
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Icon Row
+                      Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: CustomTextField(
+                              controller: _categoryNameController,
+                              label: 'Category Display Label *',
+                              hint: 'e.g. Digital X-Ray',
+                              prefixIcon: Icons.bookmark_outline_rounded,
                             ),
                           ),
                           const SizedBox(width: 10),
-                          // Icon Choice
                           Expanded(
                             flex: 2,
                             child: Column(

@@ -9,6 +9,7 @@ class DiagnosticService {
   final String id;
   final String title;
   final String categoryName;
+  final String? categoryId;
   final ServiceCategory category;
   final String description;
   final double price;
@@ -26,6 +27,7 @@ class DiagnosticService {
     required this.id,
     required this.title,
     required this.categoryName,
+    this.categoryId,
     required this.category,
     required this.description,
     required this.price,
@@ -45,6 +47,7 @@ class DiagnosticService {
       id: id,
       title: map['title'] ?? '',
       categoryName: map['categoryName'] ?? 'General',
+      categoryId: map['categoryId'],
       category: ServiceCategory.values.firstWhere(
         (c) => c.name == map['category'],
         orElse: () => ServiceCategory.homeVisit,
@@ -67,6 +70,7 @@ class DiagnosticService {
     return {
       'title': title,
       'categoryName': categoryName,
+      'categoryId': categoryId,
       'category': category.name,
       'description': description,
       'price': price,

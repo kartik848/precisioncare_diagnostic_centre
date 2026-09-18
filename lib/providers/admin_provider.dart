@@ -7,6 +7,7 @@ import '../models/staff_model.dart';
 import '../models/promo_banner.dart';
 import '../models/user_profile.dart';
 import '../models/diagnostic_service.dart';
+import '../models/diagnostic_category.dart';
 import '../services/booking_service.dart';
 import '../services/report_service.dart';
 import '../services/notification_service.dart';
@@ -14,6 +15,7 @@ import '../services/staff_service.dart';
 import '../services/banner_service.dart';
 import '../services/auth_service.dart';
 import '../services/catalog_service.dart';
+import '../services/category_service.dart';
 
 class AdminProvider with ChangeNotifier {
   final BookingService _bookingService = BookingService();
@@ -23,18 +25,21 @@ class AdminProvider with ChangeNotifier {
   final BannerService _bannerService = BannerService();
   final AuthService _authService = AuthService();
   final CatalogService _catalogService = CatalogService();
+  final CategoryService _categoryService = CategoryService();
 
   StreamSubscription<List<BookingModel>>? _bookingStreamSub;
   StreamSubscription<List<UserProfile>>? _usersStreamSub;
   StreamSubscription<List<StaffMember>>? _staffStreamSub;
   StreamSubscription<List<PromoBanner>>? _bannersStreamSub;
   StreamSubscription<List<DiagnosticService>>? _catalogStreamSub;
+  StreamSubscription<List<DiagnosticCategory>>? _categoriesStreamSub;
 
   List<BookingModel> _allBookings = [];
   List<StaffMember> _staffList = [];
   List<PromoBanner> _banners = [];
   List<UserProfile> _usersList = [];
   List<DiagnosticService> _catalogServices = [];
+  List<DiagnosticCategory> _categories = [];
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -44,6 +49,8 @@ class AdminProvider with ChangeNotifier {
   List<StaffMember> get activeStaffList => _staffList.where((s) => s.isActive).toList();
   List<PromoBanner> get banners => _banners;
   List<UserProfile> get usersList => _usersList;
+  List<DiagnosticCategory> get categories =>
+      _categories.isNotEmpty ? _categories : CategoryService.defaultCategories;
   List<DiagnosticService> get catalogServices =>
       _catalogServices.isNotEmpty ? _catalogServices : CatalogService.initialServices;
 
@@ -77,6 +84,7 @@ class AdminProvider with ChangeNotifier {
     _startStaffSync();
     _startBannersSync();
     _startCatalogSync();
+    _startCategoriesSync();
   }
 
   void _startBookingSync() {
@@ -119,6 +127,14 @@ class AdminProvider with ChangeNotifier {
     });
   }
 
+  void _startCategoriesSync() {
+    _categoriesStreamSub?.cancel();
+    _categoriesStreamSub = _categoryService.streamCategories().listen((cats) {
+      _categories = cats;
+      notifyListeners();
+    });
+  }
+
   @override
   void dispose() {
     _bookingStreamSub?.cancel();
@@ -126,6 +142,7 @@ class AdminProvider with ChangeNotifier {
     _staffStreamSub?.cancel();
     _bannersStreamSub?.cancel();
     _catalogStreamSub?.cancel();
+    _categoriesStreamSub?.cancel();
     super.dispose();
   }
 
@@ -136,6 +153,7 @@ class AdminProvider with ChangeNotifier {
       fetchBanners(),
       fetchUsers(),
       fetchCatalog(),
+      fetchCategories(),
     ]);
   }
 
@@ -225,6 +243,22 @@ class AdminProvider with ChangeNotifier {
   Future<void> deleteDiagnosticTest(String id) async {
     await _catalogService.deleteService(id);
     await fetchCatalog();
+  }
+
+  // CATEGORY MANAGEMENT
+  Future<void> fetchCategories() async {
+    _categories = await _categoryService.getAllCategories();
+    notifyListeners();
+  }
+
+  Future<void> addCategory(DiagnosticCategory category) async {
+    await _categoryService.saveCategory(category);
+    await fetchCategories();
+  }
+
+  Future<void> deleteCategory(String categoryId) async {
+    await _categoryService.deleteCategory(categoryId);
+    await fetchCategories();
   }
 
   // 1. ADMIN ACTION: Accept Booking & Assign Phlebotomist/Technician

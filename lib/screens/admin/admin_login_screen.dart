@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
+import '../../widgets/motion_logo_widget.dart';
 import 'admin_dashboard_screen.dart';
 
 class AdminLoginScreen extends StatefulWidget {
@@ -105,26 +106,18 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(
-                          'assets/images/precisioncare_logo.jpeg',
-                          height: 70,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
+                  // Animated Motion Logo
+                  const Center(
+                    child: MotionLogo(
+                      size: 64,
+                      showRipples: true,
+                      showShimmer: true,
+                      showFloating: true,
+                      showHeartbeat: true,
+                      badgeText: 'ADMIN',
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
 
                   const Text(
                     'PrecisionCare Admin Portal',
