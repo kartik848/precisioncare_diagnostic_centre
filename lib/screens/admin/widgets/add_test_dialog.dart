@@ -136,11 +136,20 @@ class _AddTestDialogState extends State<AddTestDialog> {
     final isEditing = widget.testToEdit != null;
     final adminCats = context.watch<AdminProvider>().categories;
 
-    // Ensure _selectedCategoryId is valid
+    // Ensure _selectedCategoryId is valid and synchronized
     if (_selectedCategoryId == null && adminCats.isNotEmpty) {
       _selectedCategoryId = adminCats.first.id;
       _categoryNameController.text = adminCats.first.name;
       _iconType = adminCats.first.iconType;
+    } else if (!isEditing && _selectedCategoryId != null && adminCats.isNotEmpty) {
+      final matching = adminCats.firstWhere(
+        (c) => c.id == _selectedCategoryId,
+        orElse: () => adminCats.first,
+      );
+      if (_categoryNameController.text.isEmpty || _categoryNameController.text == 'Digital X-Ray') {
+        _categoryNameController.text = matching.name;
+      }
+      _iconType = matching.iconType;
     }
 
     return Dialog(

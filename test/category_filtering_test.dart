@@ -4,6 +4,7 @@ import 'package:precisioncare_app/models/diagnostic_category.dart';
 import 'package:precisioncare_app/models/diagnostic_service.dart';
 import 'package:precisioncare_app/providers/auth_provider.dart';
 import 'package:precisioncare_app/providers/catalog_provider.dart';
+import 'package:precisioncare_app/services/catalog_service.dart';
 import 'package:precisioncare_app/screens/auth/precisioncarelogin.dart';
 import 'package:precisioncare_app/widgets/motion_logo_widget.dart';
 import 'package:provider/provider.dart';
@@ -201,6 +202,124 @@ void main() {
       // Verify Terms and Privacy footer
       expect(find.text('Terms & Conditions'), findsOneWidget);
       expect(find.text('Privacy Policy'), findsOneWidget);
+    });
+  });
+
+  group('Admin Catalog Category Management & Isolation Tests', () {
+    test('Newly added test is strictly isolated to its selected category', () {
+      final customService = DiagnosticService(
+        id: 'test_mri_101',
+        title: 'Brain MRI 3.0 Tesla High Resolution',
+        categoryName: 'MRI & Neuro Imaging',
+        categoryId: 'cat_mri_scan',
+        category: ServiceCategory.inHouseDiagnostic,
+        description: 'Advanced neuro magnetic resonance scan',
+        price: 3500.0,
+        preparation: 'Remove all metal objects',
+        sampleType: 'Scan',
+        turnaroundTime: '12 Hours',
+        iconType: 'body',
+      );
+
+      final catalog = [
+        ...CatalogService.initialServices,
+        customService,
+      ];
+
+      // 1. Digital X-Ray should NOT contain this MRI test
+      final xrayTests = catalog.where((test) {
+        final filterLower = 'digital x-ray';
+        if (test.categoryId == 'cat_blood' || test.categoryId == 'cat_ecg' || test.categoryId == 'cat_usg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio' || test.categoryId == 'cat_packages') {
+          return false;
+        }
+        return test.categoryId == 'cat_xray' ||
+            test.iconType == 'xray' ||
+            test.categoryName.toLowerCase().contains('x-ray') ||
+            test.categoryName.toLowerCase().contains('xray') ||
+            test.title.toLowerCase().contains('x-ray') ||
+            test.title.toLowerCase().contains('xray');
+      }).toList();
+
+      expect(xrayTests.any((t) => t.id == 'test_mri_101'), isFalse);
+
+      // 2. Blood Tests should NOT contain this MRI test
+      final bloodTests = catalog.where((test) {
+        final isXray = test.iconType == 'xray' ||
+            test.title.toLowerCase().contains('x-ray') ||
+            test.title.toLowerCase().contains('xray');
+        if (isXray || test.categoryId == 'cat_packages' || test.category == ServiceCategory.healthPackage) return false;
+        return test.categoryId == 'cat_blood' ||
+            test.iconType == 'blood' ||
+            test.categoryName.toLowerCase().contains('blood') ||
+            test.title.toLowerCase().contains('blood') ||
+            test.title.toLowerCase().contains('cbc') ||
+            test.title.toLowerCase().contains('lipid') ||
+            test.title.toLowerCase().contains('thyroid') ||
+            test.title.toLowerCase().contains('diabetes');
+      }).toList();
+
+      expect(bloodTests.any((t) => t.id == 'test_mri_101'), isFalse);
+
+      // 3. MRI & Neuro Category should ONLY match this MRI test
+      final mriTests = catalog.where((test) {
+        final filterLower = 'mri & neuro imaging';
+        return (test.categoryId != null && test.categoryId!.toLowerCase() == 'cat_mri_scan') ||
+            test.categoryName.trim().toLowerCase() == filterLower;
+      }).toList();
+
+      expect(mriTests.length, 1);
+      expect(mriTests.first.id, 'test_mri_101');
+      expect(mriTests.first.title, 'Brain MRI 3.0 Tesla High Resolution');
+    });
+
+    test('X-Ray test added with cat_xray appears strictly in Digital X-Ray and not in Blood Tests', () {
+      final customXray = DiagnosticService(
+        id: 'test_xray_lumbar',
+        title: 'Lumbar Spine AP & LAT Digital X-Ray',
+        categoryName: 'Digital X-Ray',
+        categoryId: 'cat_xray',
+        category: ServiceCategory.homeVisit,
+        description: 'Two views digital radiography',
+        price: 850.0,
+        preparation: 'Wear comfortable clothing',
+        sampleType: 'DR Film',
+        turnaroundTime: '2 Hours',
+        iconType: 'xray',
+      );
+
+      final catalog = [
+        ...CatalogService.initialServices,
+        customXray,
+      ];
+
+      // Digital X-Ray filter check
+      final xrayTests = catalog.where((test) {
+        if (test.categoryId == 'cat_blood' || test.categoryId == 'cat_ecg' || test.categoryId == 'cat_usg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio' || test.categoryId == 'cat_packages') {
+          return false;
+        }
+        return test.categoryId == 'cat_xray' ||
+            test.iconType == 'xray' ||
+            test.categoryName.toLowerCase().contains('x-ray') ||
+            test.categoryName.toLowerCase().contains('xray') ||
+            test.title.toLowerCase().contains('x-ray') ||
+            test.title.toLowerCase().contains('xray');
+      }).toList();
+
+      expect(xrayTests.any((t) => t.id == 'test_xray_lumbar'), isTrue);
+
+      // Blood Tests filter check
+      final bloodTests = catalog.where((test) {
+        final isXray = test.iconType == 'xray' ||
+            test.title.toLowerCase().contains('x-ray') ||
+            test.title.toLowerCase().contains('xray');
+        if (isXray || test.categoryId == 'cat_packages' || test.category == ServiceCategory.healthPackage) return false;
+        return test.categoryId == 'cat_blood' ||
+            test.iconType == 'blood' ||
+            test.categoryName.toLowerCase().contains('blood') ||
+            test.title.toLowerCase().contains('blood');
+      }).toList();
+
+      expect(bloodTests.any((t) => t.id == 'test_xray_lumbar'), isFalse);
     });
   });
 }

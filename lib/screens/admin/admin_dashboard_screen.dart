@@ -48,6 +48,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final TextEditingController _catalogSearchController = TextEditingController();
   String _catalogSearchQuery = '';
   String _catalogCategoryFilter = 'All';
+  DiagnosticCategory? _selectedCategory;
 
   @override
   void dispose() {
@@ -1643,9 +1644,109 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
-  // 4. TEST CATALOG TAB WITH SEARCH & PRICE FILTERING
+  // Helper to determine if a test belongs to a specific category
+  bool _testBelongsToCategory(DiagnosticService test, DiagnosticCategory cat) {
+    if (test.categoryId != null && test.categoryId == cat.id) return true;
+
+    final catLower = cat.name.trim().toLowerCase();
+    final catIdLower = cat.id.toLowerCase();
+
+    // 1. Digital X-Ray - STRICT
+    if (catIdLower == 'cat_xray' || catLower.contains('x-ray') || catLower.contains('xray')) {
+      if (test.categoryId == 'cat_blood' || test.categoryId == 'cat_ecg' || test.categoryId == 'cat_usg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio' || test.categoryId == 'cat_packages') {
+        return false;
+      }
+      return test.categoryId == 'cat_xray' ||
+          test.iconType == 'xray' ||
+          test.categoryName.toLowerCase().contains('x-ray') ||
+          test.categoryName.toLowerCase().contains('xray') ||
+          test.title.toLowerCase().contains('x-ray') ||
+          test.title.toLowerCase().contains('xray');
+    }
+
+    // 2. Blood Tests - STRICT
+    if (catIdLower == 'cat_blood' || catLower.contains('blood')) {
+      if (test.categoryId == 'cat_xray' || test.categoryId == 'cat_ecg' || test.categoryId == 'cat_usg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio' || test.categoryId == 'cat_packages') {
+        return false;
+      }
+      final isXray = test.iconType == 'xray' ||
+          test.title.toLowerCase().contains('x-ray') ||
+          test.title.toLowerCase().contains('xray');
+      if (isXray || test.categoryId == 'cat_packages' || test.category == ServiceCategory.healthPackage) return false;
+      return test.categoryId == 'cat_blood' ||
+          test.iconType == 'blood' ||
+          test.categoryName.toLowerCase().contains('blood') ||
+          test.title.toLowerCase().contains('blood') ||
+          test.title.toLowerCase().contains('cbc') ||
+          test.title.toLowerCase().contains('lipid') ||
+          test.title.toLowerCase().contains('thyroid') ||
+          test.title.toLowerCase().contains('diabetes');
+    }
+
+    // 3. ECG & Cardiology - STRICT
+    if (catIdLower == 'cat_ecg' || catLower.contains('ecg') || catLower.contains('cardio') || catLower.contains('heart')) {
+      if (test.categoryId == 'cat_xray' || test.categoryId == 'cat_blood' || test.categoryId == 'cat_usg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio' || test.categoryId == 'cat_packages') {
+        return false;
+      }
+      return test.categoryId == 'cat_ecg' ||
+          test.iconType == 'ecg' ||
+          test.iconType == 'stress_test' ||
+          test.categoryName.toLowerCase().contains('ecg') ||
+          test.title.toLowerCase().contains('ecg') ||
+          test.title.toLowerCase().contains('stress test') ||
+          test.title.toLowerCase().contains('echocardiography');
+    }
+
+    // 4. Ultrasound (USG) - STRICT
+    if (catIdLower == 'cat_usg' || catLower.contains('usg') || catLower.contains('ultrasound') || catLower.contains('sonography')) {
+      if (test.categoryId == 'cat_xray' || test.categoryId == 'cat_blood' || test.categoryId == 'cat_ecg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio' || test.categoryId == 'cat_packages') {
+        return false;
+      }
+      return test.categoryId == 'cat_usg' ||
+          test.iconType == 'usg' ||
+          test.categoryName.toLowerCase().contains('ultrasound') ||
+          test.categoryName.toLowerCase().contains('usg') ||
+          test.title.toLowerCase().contains('ultrasound');
+    }
+
+    // 5. PFT (Lung Test) - STRICT
+    if (catIdLower == 'cat_pft' || catLower.contains('pft') || catLower.contains('spirometry') || catLower.contains('lung')) {
+      return test.categoryId == 'cat_pft' ||
+          test.iconType == 'pft' ||
+          test.categoryName.toLowerCase().contains('pft') ||
+          test.title.toLowerCase().contains('pft') ||
+          test.title.toLowerCase().contains('spirometry');
+    }
+
+    // 6. Physiotherapy - STRICT
+    if (catIdLower == 'cat_physio' || catLower.contains('physio')) {
+      return test.categoryId == 'cat_physio' ||
+          test.category == ServiceCategory.physiotherapy ||
+          test.iconType == 'physio' ||
+          test.categoryName.toLowerCase().contains('physio');
+    }
+
+    // 7. Health Packages - STRICT
+    if (catIdLower == 'cat_packages' || catLower.contains('package') || catLower.contains('full body')) {
+      return test.categoryId == 'cat_packages' ||
+          test.category == ServiceCategory.healthPackage ||
+          test.categoryName.toLowerCase().contains('package') ||
+          test.includedTests.length > 5;
+    }
+
+    // 8. Custom Admin Categories
+    return (test.categoryId != null && test.categoryId!.toLowerCase() == catIdLower) ||
+        test.categoryName.trim().toLowerCase() == catLower;
+  }
+
+  int _getCategoryTestCount(DiagnosticCategory cat, List<DiagnosticService> catalog) {
+    return catalog.where((t) => _testBelongsToCategory(t, cat)).length;
+  }
+
+  // 4. TEST CATALOG TAB WITH SEARCH, CATEGORY MANAGEMENT & ISOLATED FILTERING
   Widget _buildCatalogTab(List<DiagnosticService> catalog) {
-    final categories = context.watch<AdminProvider>().categories;
+    final adminProvider = context.watch<AdminProvider>();
+    final categories = adminProvider.categories;
 
     // 1. Strict Category Filtering
     var filtered = catalog.where((test) {
@@ -1658,80 +1759,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         return test.isInHouseAvailable || test.category == ServiceCategory.inHouseDiagnostic;
       }
 
+      if (_selectedCategory != null) {
+        return _testBelongsToCategory(test, _selectedCategory!);
+      }
+
+      final matchedCat = categories.cast<DiagnosticCategory?>().firstWhere(
+        (c) => c != null && (c.name.toLowerCase() == _catalogCategoryFilter.toLowerCase() || c.id.toLowerCase() == _catalogCategoryFilter.toLowerCase()),
+        orElse: () => null,
+      );
+      if (matchedCat != null) {
+        return _testBelongsToCategory(test, matchedCat);
+      }
+
       final filterLower = _catalogCategoryFilter.trim().toLowerCase();
-
-      // 1. Digital X-Ray - STRICT: ONLY X-Ray tests!
-      if (filterLower.contains('x-ray') || filterLower.contains('xray')) {
-        return test.categoryId == 'cat_xray' ||
-            test.iconType == 'xray' ||
-            test.categoryName.toLowerCase().contains('x-ray') ||
-            test.categoryName.toLowerCase().contains('xray') ||
-            test.title.toLowerCase().contains('x-ray') ||
-            test.title.toLowerCase().contains('xray');
-      }
-
-      // 2. Blood Tests - STRICT: ONLY Blood tests!
-      if (filterLower.contains('blood')) {
-        final isXray = test.iconType == 'xray' ||
-            test.title.toLowerCase().contains('x-ray') ||
-            test.title.toLowerCase().contains('xray');
-        if (isXray || test.categoryId == 'cat_packages' || test.category == ServiceCategory.healthPackage) return false;
-        return test.categoryId == 'cat_blood' ||
-            test.iconType == 'blood' ||
-            test.categoryName.toLowerCase().contains('blood') ||
-            test.title.toLowerCase().contains('blood') ||
-            test.title.toLowerCase().contains('cbc') ||
-            test.title.toLowerCase().contains('lipid') ||
-            test.title.toLowerCase().contains('thyroid') ||
-            test.title.toLowerCase().contains('diabetes');
-      }
-
-      // 3. ECG & Cardiology - STRICT: ONLY ECG / Cardio tests!
-      if (filterLower.contains('ecg') || filterLower.contains('cardio') || filterLower.contains('heart')) {
-        return test.categoryId == 'cat_ecg' ||
-            test.iconType == 'ecg' ||
-            test.iconType == 'stress_test' ||
-            test.categoryName.toLowerCase().contains('ecg') ||
-            test.title.toLowerCase().contains('ecg') ||
-            test.title.toLowerCase().contains('stress test') ||
-            test.title.toLowerCase().contains('echocardiography');
-      }
-
-      // 4. Ultrasound (USG) - STRICT: ONLY Ultrasound tests!
-      if (filterLower.contains('usg') || filterLower.contains('ultrasound') || filterLower.contains('sonography')) {
-        return test.categoryId == 'cat_usg' ||
-            test.iconType == 'usg' ||
-            test.categoryName.toLowerCase().contains('ultrasound') ||
-            test.categoryName.toLowerCase().contains('usg') ||
-            test.title.toLowerCase().contains('ultrasound');
-      }
-
-      // 5. PFT (Lung Test) - STRICT: ONLY PFT / Spirometry!
-      if (filterLower.contains('pft') || filterLower.contains('spirometry') || filterLower.contains('lung')) {
-        return test.categoryId == 'cat_pft' ||
-            test.iconType == 'pft' ||
-            test.categoryName.toLowerCase().contains('pft') ||
-            test.title.toLowerCase().contains('pft') ||
-            test.title.toLowerCase().contains('spirometry');
-      }
-
-      // 6. Physiotherapy - STRICT: ONLY Physiotherapy!
-      if (filterLower.contains('physio')) {
-        return test.categoryId == 'cat_physio' ||
-            test.category == ServiceCategory.physiotherapy ||
-            test.iconType == 'physio' ||
-            test.categoryName.toLowerCase().contains('physio');
-      }
-
-      // 7. Health Packages - STRICT: Packages!
-      if (filterLower.contains('package') || filterLower.contains('full body')) {
-        return test.categoryId == 'cat_packages' ||
-            test.category == ServiceCategory.healthPackage ||
-            test.categoryName.toLowerCase().contains('package') ||
-            test.includedTests.length > 5;
-      }
-
-      // 8. Custom Categories created by Admin
       return (test.categoryId != null && test.categoryId!.toLowerCase() == filterLower) ||
           test.categoryName.trim().toLowerCase() == filterLower;
     }).toList();
@@ -1814,7 +1854,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         ),
                         // Add Test Button
                         ElevatedButton.icon(
-                          onPressed: () => _openAddTestDialog(),
+                          onPressed: () => _openAddTestDialog(null, _selectedCategory?.id, _selectedCategory?.name),
                           icon: const Icon(Icons.add_circle_outline, size: 15, color: Colors.white),
                           label: const Text('Add Test', style: TextStyle(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w800)),
                           style: ElevatedButton.styleFrom(
@@ -1865,24 +1905,335 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 14),
 
-                // Dynamic Category Filter Chips
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      _buildCatalogFilterChip('All', 'All (${catalog.length})'),
-                      const SizedBox(width: 8),
-                      ...categories.map((cat) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: _buildCatalogFilterChip(cat.name, cat.name),
+                // Categories Management & Filter Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.folder_special_rounded, size: 14, color: AppColors.primary),
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Test Categories',
+                          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.textPrimary),
+                        ),
+                        const SizedBox(width: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${categories.length}',
+                            style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF475569)),
+                          ),
+                        ),
+                      ],
+                    ),
+                    InkWell(
+                      onTap: () => _openAddCategoryDialog(),
+                      borderRadius: BorderRadius.circular(6),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_circle_outline, size: 14, color: AppColors.primary),
+                            SizedBox(width: 4),
+                            Text(
+                              '+ Add New Category',
+                              style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800, color: AppColors.primary),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // Horizontal Category Cards with Edit, Delete & Filter
+                SizedBox(
+                  height: 72,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: categories.length + 1,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (context, catIndex) {
+                      if (catIndex == 0) {
+                        final isSelected = _catalogCategoryFilter == 'All';
+                        return InkWell(
+                          onTap: () {
+                            setState(() {
+                              _catalogCategoryFilter = 'All';
+                              _selectedCategory = null;
+                            });
+                          },
+                          borderRadius: BorderRadius.circular(12),
+                          child: Container(
+                            width: 125,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: isSelected ? AppColors.primary.withOpacity(0.08) : const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+                                width: isSelected ? 1.8 : 1.0,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    color: isSelected ? AppColors.primary : const Color(0xFFE2E8F0),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.grid_view_rounded, size: 18, color: isSelected ? Colors.white : const Color(0xFF475569)),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        'All Tests',
+                                        style: TextStyle(
+                                          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                                          fontSize: 12,
+                                          color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${catalog.length} tests',
+                                        style: TextStyle(
+                                          fontSize: 10.5,
+                                          color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         );
-                      }),
-                    ],
+                      }
+
+                      final cat = categories[catIndex - 1];
+                      final isSelected = (_selectedCategory?.id == cat.id) || (_catalogCategoryFilter == cat.name);
+                      final testCount = _getCategoryTestCount(cat, catalog);
+
+                      return InkWell(
+                        onTap: () {
+                          setState(() {
+                            if (isSelected && _catalogCategoryFilter != 'All') {
+                              _catalogCategoryFilter = 'All';
+                              _selectedCategory = null;
+                            } else {
+                              _catalogCategoryFilter = cat.name;
+                              _selectedCategory = cat;
+                            }
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? cat.color.withOpacity(0.09) : Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? cat.color : const Color(0xFFE2E8F0),
+                              width: isSelected ? 1.8 : 1.0,
+                            ),
+                            boxShadow: isSelected
+                                ? [BoxShadow(color: cat.color.withOpacity(0.15), blurRadius: 6, offset: const Offset(0, 2))]
+                                : null,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Icon Box
+                              Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? cat.color : cat.color.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(cat.iconData, size: 18, color: isSelected ? Colors.white : cat.color),
+                              ),
+                              const SizedBox(width: 8),
+
+                              // Name & Test Count
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      ConstrainedBox(
+                                        constraints: const BoxConstraints(maxWidth: 130),
+                                        child: Text(
+                                          cat.name,
+                                          style: TextStyle(
+                                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w700,
+                                            fontSize: 12,
+                                            color: isSelected ? cat.color : AppColors.textPrimary,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      if (cat.badge.isNotEmpty) ...[
+                                        const SizedBox(width: 4),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                          decoration: BoxDecoration(
+                                            color: cat.color.withOpacity(0.12),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: Text(
+                                            cat.badge,
+                                            style: TextStyle(fontSize: 8.5, fontWeight: FontWeight.w700, color: cat.color),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                  Text(
+                                    '$testCount tests',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      color: isSelected ? cat.color : AppColors.textSecondary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 8),
+
+                              // Edit Category Icon Button
+                              Tooltip(
+                                message: 'Edit ${cat.name}',
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(6),
+                                    onTap: () => _openAddCategoryDialog(cat),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(5),
+                                      child: Icon(Icons.edit_outlined, size: 16, color: isSelected ? cat.color : const Color(0xFF64748B)),
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Delete Category Icon Button
+                              Tooltip(
+                                message: 'Delete ${cat.name}',
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(6),
+                                    onTap: () {
+                                      _confirmDeleteCategory(adminProvider, cat);
+                                      if (_selectedCategory?.id == cat.id) {
+                                        setState(() {
+                                          _catalogCategoryFilter = 'All';
+                                          _selectedCategory = null;
+                                        });
+                                      }
+                                    },
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(5),
+                                      child: Icon(Icons.delete_outline_rounded, size: 16, color: AppColors.error),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
+
+                // Active Category Filter Indicator with direct + Add Test shortcut
+                if (_selectedCategory != null && _catalogCategoryFilter != 'All') ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: _selectedCategory!.color.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: _selectedCategory!.color.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(_selectedCategory!.iconData, size: 16, color: _selectedCategory!.color),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Active Category: ${_selectedCategory!.name} (${filtered.length} tests)',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _selectedCategory!.color),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: () => _openAddTestDialog(null, _selectedCategory!.id, _selectedCategory!.name),
+                          icon: const Icon(Icons.add, size: 13, color: Colors.white),
+                          label: Text(
+                            'Add to ${_selectedCategory!.name}',
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: Colors.white),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _selectedCategory!.color,
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        InkWell(
+                          onTap: () {
+                            setState(() {
+                              _catalogCategoryFilter = 'All';
+                              _selectedCategory = null;
+                            });
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                            ),
+                            child: const Icon(Icons.close_rounded, size: 14, color: AppColors.textMuted),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           );
@@ -1930,6 +2281,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     setState(() {
                       _catalogSearchQuery = '';
                       _catalogCategoryFilter = 'All';
+                      _selectedCategory = null;
                     });
                   },
                   icon: const Icon(Icons.refresh_rounded, size: 16),
