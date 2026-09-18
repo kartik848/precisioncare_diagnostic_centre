@@ -64,7 +64,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            side: const BorderSide(color: AppColors.accent, width: 1.5),
+            side: const BorderSide(color: Color(0xFFFECDD3), width: 1.5),
           ),
           margin: const EdgeInsets.fromLTRB(14, 10, 14, 20),
           content: Row(
@@ -72,7 +72,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: const BoxDecoration(
-                  color: AppColors.accent,
+                  color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.notifications_active_rounded, color: Colors.white, size: 20),
@@ -85,10 +85,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                   children: [
                     Text(
                       notif.title,
-                      style: const TextStyle(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w800,
                         color: AppColors.textPrimary,
+                        letterSpacing: -0.1,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -96,9 +97,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                     const SizedBox(height: 2),
                     Text(
                       notif.message,
-                      style: const TextStyle(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: AppColors.textSecondary,
+                        height: 1.3,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -110,7 +112,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           ),
           action: SnackBarAction(
             label: 'View',
-            textColor: AppColors.accent,
+            textColor: AppColors.primary,
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(

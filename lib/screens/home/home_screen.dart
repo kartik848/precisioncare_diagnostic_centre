@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
@@ -349,7 +350,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: const BoxDecoration(
-                                    color: AppColors.accent,
+                                    color: AppColors.primary,
                                     shape: BoxShape.circle,
                                   ),
                                   child: Text(
@@ -493,16 +494,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFFFF7ED), Color(0xFFFFEDD5)],
+                      colors: [Color(0xFFFFF0F3), Color(0xFFFFE4E8)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFFDBA74)),
+                    border: Border.all(color: const Color(0xFFFECDD3), width: 1.2),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.orange.withOpacity(0.08),
-                        blurRadius: 8,
+                        color: const Color(0xFFE11D48).withOpacity(0.08),
+                        blurRadius: 10,
                         offset: const Offset(0, 3),
                       ),
                     ],
@@ -513,7 +514,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       Container(
                         padding: const EdgeInsets.all(7),
                         decoration: const BoxDecoration(
-                          color: Color(0xFFEA580C),
+                          color: Color(0xFFE11D48),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.alarm_on_rounded, color: Colors.white, size: 18),
@@ -529,17 +530,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Expanded(
                                   child: Text(
                                     nextTestAlert.first.title,
-                                    style: const TextStyle(
+                                    style: GoogleFonts.plusJakartaSans(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w800,
-                                      color: Color(0xFF9A3412),
+                                      color: const Color(0xFF0F172A),
+                                      letterSpacing: -0.1,
                                     ),
                                   ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFEA580C),
+                                    color: const Color(0xFFE11D48),
                                     borderRadius: BorderRadius.circular(4),
                                   ),
                                   child: const Text('DUE', style: TextStyle(color: Colors.white, fontSize: 8.5, fontWeight: FontWeight.w800)),
@@ -549,7 +551,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 4),
                             Text(
                               nextTestAlert.first.message,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF7C2D12), height: 1.3),
+                              style: GoogleFonts.plusJakartaSans(fontSize: 11, color: const Color(0xFF475569), height: 1.3),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -561,11 +563,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                 );
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFEA580C),
+                                backgroundColor: const Color(0xFFE11D48),
                                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 minimumSize: Size.zero,
                                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
                               child: const Row(
                                 mainAxisSize: MainAxisSize.min,

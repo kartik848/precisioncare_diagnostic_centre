@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/date_formatter.dart';
@@ -49,7 +50,14 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   notifProvider.markAllAsRead(user.uid);
                 }
               },
-              child: const Text('Mark all read', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+              child: Text(
+                'Mark all read',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primary,
+                ),
+              ),
             ),
         ],
       ),
@@ -80,8 +88,8 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
       case NotificationType.nextTestDue:
       case NotificationType.adminReminder:
         iconData = Icons.alarm_rounded;
-        iconColor = AppColors.accent;
-        bgColor = AppColors.accentLight;
+        iconColor = AppColors.primary;
+        bgColor = AppColors.primaryLight;
         break;
       case NotificationType.reportReady:
         iconData = Icons.description_rounded;
@@ -90,7 +98,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
         break;
       case NotificationType.bookingUpdate:
         iconData = Icons.local_shipping_rounded;
-        iconColor = AppColors.primary;
+        iconColor = AppColors.primaryDark;
         bgColor = AppColors.primaryLight;
         break;
       case NotificationType.healthTip:
@@ -113,15 +121,15 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
           color: isUnread ? Colors.white : AppColors.background.withOpacity(0.8),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isUnread ? AppColors.primary.withOpacity(0.4) : AppColors.border,
+            color: isUnread ? const Color(0xFFFECDD3) : AppColors.border,
             width: isUnread ? 1.5 : 1,
           ),
           boxShadow: isUnread
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.06),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
+                    color: AppColors.primary.withOpacity(0.08),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
                   ),
                 ]
               : null,
@@ -148,10 +156,11 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                       Expanded(
                         child: Text(
                           notif.title,
-                          style: TextStyle(
-                            fontSize: 14,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
                             fontWeight: isUnread ? FontWeight.w800 : FontWeight.w600,
                             color: AppColors.textPrimary,
+                            letterSpacing: -0.1,
                           ),
                         ),
                       ),
@@ -160,7 +169,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                           width: 8,
                           height: 8,
                           decoration: const BoxDecoration(
-                            color: AppColors.accent,
+                            color: AppColors.primary,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -169,7 +178,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                   const SizedBox(height: 4),
                   Text(
                     notif.message,
-                    style: TextStyle(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       color: isUnread ? AppColors.textPrimary : AppColors.textSecondary,
                       height: 1.35,
@@ -183,7 +192,7 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                     children: [
                       Text(
                         DateFormatter.getRelativeTime(notif.timestamp),
-                        style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10, color: AppColors.textMuted, fontWeight: FontWeight.w500),
                       ),
                       if (notif.type == NotificationType.nextTestDue || notif.type == NotificationType.adminReminder)
                         InkWell(
@@ -196,20 +205,20 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
                               color: AppColors.primary,
-                              borderRadius: BorderRadius.circular(6),
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   'Schedule Now',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w800, color: Colors.white),
                                 ),
-                                SizedBox(width: 3),
-                                Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.white),
+                                const SizedBox(width: 3),
+                                const Icon(Icons.arrow_forward_rounded, size: 10, color: Colors.white),
                               ],
                             ),
                           ),
@@ -223,20 +232,20 @@ class _NotificationCenterScreenState extends State<NotificationCenterScreen> {
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                             decoration: BoxDecoration(
-                              color: AppColors.success,
-                              borderRadius: BorderRadius.circular(6),
+                              color: AppColors.primaryDark,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
                                   'View Report',
-                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white),
+                                  style: GoogleFonts.plusJakartaSans(fontSize: 10.5, fontWeight: FontWeight.w800, color: Colors.white),
                                 ),
-                                SizedBox(width: 3),
-                                Icon(Icons.download_rounded, size: 10, color: Colors.white),
+                                const SizedBox(width: 3),
+                                const Icon(Icons.download_rounded, size: 10, color: Colors.white),
                               ],
                             ),
                           ),
