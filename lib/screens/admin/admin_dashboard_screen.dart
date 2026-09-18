@@ -39,6 +39,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     'Incoming Booking Requests',
     'Active Home Visits & Dispatches',
     'Medical Staff & Technicians',
+    'Diagnostic Categories & Departments',
     'Diagnostic Test Catalog',
     'Promotional Banners & Offers',
     'Patient Users Directory',
@@ -84,8 +85,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     showDialog(context: context, builder: (_) => AddStaffDialog(staffToEdit: staff));
   }
 
-  void _openAddTestDialog([DiagnosticService? service]) {
-    showDialog(context: context, builder: (_) => AddTestDialog(testToEdit: service));
+  void _openAddTestDialog([DiagnosticService? service, String? categoryId, String? categoryName]) {
+    showDialog(
+      context: context,
+      builder: (_) => AddTestDialog(
+        testToEdit: service,
+        initialCategoryId: categoryId,
+        initialCategoryName: categoryName,
+      ),
+    );
   }
 
   void _openAddCategoryDialog([DiagnosticCategory? category]) {
@@ -305,6 +313,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     final banners = admin.banners;
     final users = admin.usersList;
 
+    final categories = admin.categories;
     final isLargeScreen = MediaQuery.of(context).size.width >= 850;
 
     return Scaffold(
@@ -318,6 +327,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 pending.length,
                 active.length,
                 staff.length,
+                categories.length,
                 catalog.length,
                 banners.length,
                 users.length,
@@ -380,6 +390,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               pending.length,
               active.length,
               staff.length,
+              categories.length,
               catalog.length,
               banners.length,
               users.length,
@@ -397,7 +408,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 const Divider(height: 1, color: AppColors.border),
 
                 // Mobile Horizontal Navigation Tabs
-                if (!isLargeScreen) _buildMobileNavBar(pending.length, active.length),
+                if (!isLargeScreen) _buildMobileNavBar(pending.length, active.length, categories.length),
 
                 // Active View Body
                 Expanded(
@@ -408,9 +419,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           pending: pending,
                           active: active,
                           staff: staff,
+                          categories: categories,
                           catalog: catalog,
                           banners: banners,
                           users: users,
+                          admin: admin,
                         ),
                 ),
               ],
@@ -428,6 +441,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     int pendingCount,
     int activeCount,
     int staffCount,
+    int categoriesCount,
     int catalogCount,
     int bannersCount,
     int usersCount, {
@@ -511,20 +525,28 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   ),
                   _buildSidebarItem(
                     index: 3,
+                    icon: Icons.category_rounded,
+                    label: 'Test Categories',
+                    badgeCount: categoriesCount,
+                    badgeColor: AppColors.primary,
+                    isDrawer: isDrawer,
+                  ),
+                  _buildSidebarItem(
+                    index: 4,
                     icon: Icons.science_outlined,
                     label: 'Test Catalog & Prices',
                     badgeCount: catalogCount,
                     isDrawer: isDrawer,
                   ),
                   _buildSidebarItem(
-                    index: 4,
+                    index: 5,
                     icon: Icons.view_carousel_outlined,
                     label: 'Promotional Banners',
                     badgeCount: bannersCount,
                     isDrawer: isDrawer,
                   ),
                   _buildSidebarItem(
-                    index: 5,
+                    index: 6,
                     icon: Icons.people_alt_outlined,
                     label: 'Patient Users Directory',
                     badgeCount: usersCount,
@@ -598,7 +620,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   label,
                   style: TextStyle(
                     fontSize: 12.5,
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                     color: isSelected ? Colors.white : Colors.white70,
                   ),
                 ),
@@ -607,13 +629,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isSelected ? Colors.white.withOpacity(0.2) : badgeColor,
-                    borderRadius: BorderRadius.circular(12),
+                    color: isSelected ? Colors.white.withOpacity(0.25) : badgeColor,
+                    borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
                     '$badgeCount',
                     style: const TextStyle(
-                      fontSize: 10,
+                      fontSize: 10.5,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                     ),
@@ -627,11 +649,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 
   // MOBILE HORIZONTAL TAB SWITCHER
-  Widget _buildMobileNavBar(int pendingCount, int activeCount) {
+  Widget _buildMobileNavBar(int pendingCount, int activeCount, int categoriesCount) {
     final shortTabs = [
       {'title': 'Pending', 'badge': pendingCount, 'icon': Icons.pending_actions_rounded},
       {'title': 'Active', 'badge': activeCount, 'icon': Icons.run_circle_outlined},
       {'title': 'Staff', 'badge': null, 'icon': Icons.badge_outlined},
+      {'title': 'Categories', 'badge': categoriesCount, 'icon': Icons.category_rounded},
       {'title': 'Catalog', 'badge': null, 'icon': Icons.science_outlined},
       {'title': 'Banners', 'badge': null, 'icon': Icons.view_carousel_outlined},
       {'title': 'Users', 'badge': null, 'icon': Icons.people_alt_outlined},
@@ -811,9 +834,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     required List<BookingModel> pending,
     required List<BookingModel> active,
     required List<StaffMember> staff,
+    required List<DiagnosticCategory> categories,
     required List<DiagnosticService> catalog,
     required List<PromoBanner> banners,
     required List<UserProfile> users,
+    required AdminProvider admin,
   }) {
     switch (index) {
       case 0:
@@ -823,10 +848,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 2:
         return _buildStaffTab(staff);
       case 3:
-        return _buildCatalogTab(catalog);
+        return _buildCategoriesTab(admin, categories, catalog);
       case 4:
-        return _buildBannersTab(banners);
+        return _buildCatalogTab(catalog);
       case 5:
+        return _buildBannersTab(banners);
+      case 6:
         return _buildUsersTab(users);
       default:
         return _buildBookingsQueue(pending);
@@ -842,6 +869,13 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         label: const Text('Add Staff Member', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
       );
     } else if (_selectedNavIndex == 3) {
+      return FloatingActionButton.extended(
+        onPressed: () => _openAddCategoryDialog(),
+        backgroundColor: AppColors.primary,
+        icon: const Icon(Icons.category_rounded, color: Colors.white),
+        label: const Text('+ Add Category', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+      );
+    } else if (_selectedNavIndex == 4) {
       return FloatingActionButton.extended(
         onPressed: () => _openAddTestDialog(),
         backgroundColor: AppColors.primary,
@@ -1243,6 +1277,369 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  // 3. DIAGNOSTIC TEST CATEGORIES MANAGEMENT TAB
+  Widget _buildCategoriesTab(
+    AdminProvider admin,
+    List<DiagnosticCategory> categories,
+    List<DiagnosticService> catalog,
+  ) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // 1. Top Management Header Card
+        Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.02),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(Icons.category_rounded, color: AppColors.primary, size: 22),
+                            SizedBox(width: 8),
+                            Text(
+                              'Diagnostic Categories & Departments',
+                              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Total ${categories.length} Categories • Add or manage categories to strictly isolate and organize tests',
+                          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () => _openAddCategoryDialog(),
+                    icon: const Icon(Icons.add_circle_outline, size: 16, color: Colors.white),
+                    label: const Text(
+                      '+ Add New Category',
+                      style: TextStyle(fontSize: 12.5, color: Colors.white, fontWeight: FontWeight.w800),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              // Summary Metrics Row
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                children: [
+                  _buildCategoryMetricChip(
+                    '${categories.length} Departments',
+                    Icons.account_tree_outlined,
+                    AppColors.primary,
+                  ),
+                  _buildCategoryMetricChip(
+                    '${categories.where((c) => c.isHomeVisitAvailable).length} Home Collection Enabled',
+                    Icons.home_outlined,
+                    AppColors.info,
+                  ),
+                  _buildCategoryMetricChip(
+                    '${categories.where((c) => c.isInHouseAvailable).length} Lab In-House Enabled',
+                    Icons.local_hospital_outlined,
+                    AppColors.success,
+                  ),
+                  _buildCategoryMetricChip(
+                    '${catalog.length} Total Tests Linked',
+                    Icons.science_outlined,
+                    AppColors.secondary,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // 2. Categories List / Cards
+        if (categories.isEmpty)
+          const EmptyState(
+            title: 'No Categories Found',
+            description: 'Click "+ Add New Category" above to create your first diagnostic category.',
+            icon: Icons.category_outlined,
+          )
+        else
+          ...categories.map((category) {
+            final linkedTests = catalog.where((s) {
+              if (s.categoryId == category.id) return true;
+              if (s.categoryName.trim().toLowerCase() == category.name.trim().toLowerCase()) return true;
+              if (category.id == 'cat_xray') {
+                return s.iconType == 'xray' || s.title.toLowerCase().contains('x-ray') || s.title.toLowerCase().contains('xray');
+              }
+              if (category.id == 'cat_blood') {
+                return s.iconType == 'blood' || s.category == ServiceCategory.homeVisit;
+              }
+              if (category.id == 'cat_ecg') {
+                return s.iconType == 'ecg' || s.title.toLowerCase().contains('ecg') || s.title.toLowerCase().contains('stress');
+              }
+              if (category.id == 'cat_usg') {
+                return s.iconType == 'usg' || s.title.toLowerCase().contains('ultrasound');
+              }
+              if (category.id == 'cat_pft') {
+                return s.iconType == 'pft' || s.title.toLowerCase().contains('pft') || s.title.toLowerCase().contains('spirometry');
+              }
+              if (category.id == 'cat_physio') {
+                return s.iconType == 'physio' || s.category == ServiceCategory.physiotherapy;
+              }
+              if (category.id == 'cat_packages') {
+                return s.category == ServiceCategory.healthPackage || s.includedTests.length > 5;
+              }
+              return false;
+            }).toList();
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.border),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.02),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Category Icon Box
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: category.color.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: category.color.withOpacity(0.25)),
+                        ),
+                        child: Icon(category.iconData, color: category.color, size: 24),
+                      ),
+                      const SizedBox(width: 14),
+
+                      // Category Title & Info
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    category.name,
+                                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Color(0xFF0F172A)),
+                                  ),
+                                ),
+                                if (category.badge != null && category.badge!.isNotEmpty) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: category.color.withOpacity(0.15),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      category.badge!,
+                                      style: TextStyle(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w800,
+                                        color: category.color,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              category.description,
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), height: 1.3),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Tests Count Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                        ),
+                        child: Text(
+                          '${linkedTests.length} Tests',
+                          style: const TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF334155),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                  const SizedBox(height: 10),
+
+                  // Bottom Row: Capabilities Chips & Actions
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Capabilities
+                      Wrap(
+                        spacing: 6,
+                        children: [
+                          if (category.isHomeVisitAvailable)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEFF6FF),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                '🏠 Home Collection',
+                                style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF1D4ED8)),
+                              ),
+                            ),
+                          if (category.isInHouseAvailable)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF0FDF4),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Text(
+                                '🏥 Lab In-House',
+                                style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w700, color: Color(0xFF15803D)),
+                              ),
+                            ),
+                        ],
+                      ),
+
+                      // Action Buttons
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _openAddTestDialog(null, category.id, category.name),
+                            icon: const Icon(Icons.add, size: 13, color: AppColors.primary),
+                            label: const Text('Add Test', style: TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w800)),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppColors.primary, width: 1.2),
+                              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                              minimumSize: Size.zero,
+                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          IconButton(
+                            icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF64748B)),
+                            tooltip: 'Edit Category',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                            onPressed: () => _openAddCategoryDialog(category),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.error),
+                            tooltip: 'Delete Category',
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                            onPressed: () => _confirmDeleteCategory(admin, category),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
+  Widget _buildCategoryMetricChip(String text, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: color),
+          const SizedBox(width: 5),
+          Text(text, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: color)),
+        ],
+      ),
+    );
+  }
+
+  void _confirmDeleteCategory(AdminProvider admin, DiagnosticCategory category) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text('Delete "${category.name}"?', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+        content: Text(
+          'Are you sure you want to delete the "${category.name}" category? Tests under this category will remain in the catalog but will no longer be grouped under this category.',
+          style: const TextStyle(fontSize: 13, color: Color(0xFF475569)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await admin.deleteCategory(category.id);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Category "${category.name}" deleted'), backgroundColor: AppColors.success),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
     );
   }
 

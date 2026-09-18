@@ -11,8 +11,15 @@ import 'add_category_dialog.dart';
 
 class AddTestDialog extends StatefulWidget {
   final DiagnosticService? testToEdit;
+  final String? initialCategoryId;
+  final String? initialCategoryName;
 
-  const AddTestDialog({super.key, this.testToEdit});
+  const AddTestDialog({
+    super.key,
+    this.testToEdit,
+    this.initialCategoryId,
+    this.initialCategoryName,
+  });
 
   @override
   State<AddTestDialog> createState() => _AddTestDialogState();
@@ -58,6 +65,13 @@ class _AddTestDialogState extends State<AddTestDialog> {
       _category = widget.testToEdit!.category;
       _isHomeVisitAvailable = widget.testToEdit!.isHomeVisitAvailable;
       _isInHouseAvailable = widget.testToEdit!.isInHouseAvailable;
+    } else {
+      if (widget.initialCategoryId != null) {
+        _selectedCategoryId = widget.initialCategoryId;
+      }
+      if (widget.initialCategoryName != null) {
+        _categoryNameController.text = widget.initialCategoryName!;
+      }
     }
   }
 

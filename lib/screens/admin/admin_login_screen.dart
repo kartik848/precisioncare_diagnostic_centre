@@ -200,6 +200,20 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     icon: Icons.login_rounded,
                     backgroundColor: AppColors.secondary,
                   ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () {
+                        _emailController.text = 'admin@gmail.com';
+                        _passwordController.text = '1234';
+                      },
+                      icon: const Icon(Icons.flash_on_rounded, size: 14, color: AppColors.accent),
+                      label: const Text(
+                        'Auto-fill Admin (admin@gmail.com / 1234)',
+                        style: TextStyle(fontSize: 11.5, color: AppColors.accent, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
