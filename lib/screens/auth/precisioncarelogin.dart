@@ -189,7 +189,7 @@ class _PrecisionCareLoginScreenState extends State<PrecisionCareLoginScreen>
           child: Column(
             children: [
               // =============================================================
-              // 1. TOP BRAND BANNER (INSPIRED BY REFERENCE WITH 3D CHARACTERS)
+              // 1. TOP BRAND BANNER (CUSTOM 3D HEALTHCARE TEAM ARTWORK)
               // =============================================================
               Container(
                 height: bannerHeight,
@@ -197,9 +197,9 @@ class _PrecisionCareLoginScreenState extends State<PrecisionCareLoginScreen>
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      Color(0xFFFF4838),
-                      Color(0xFFFF5443),
-                      Color(0xFFFF5443),
+                      Color(0xFFF55E4D),
+                      Color(0xFFE84C3D),
+                      Color(0xFFDE4335),
                     ],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
@@ -330,7 +330,7 @@ class _PrecisionCareLoginScreenState extends State<PrecisionCareLoginScreen>
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Image.asset(
-                              'assets/images/precisioncare_3d_team.png',
+                              'assets/images/precisioncare_team_3d.jpg',
                               fit: BoxFit.contain,
                               alignment: Alignment.bottomCenter,
                               errorBuilder: (_, __, ___) => _buildFallback3DCharacters(),
