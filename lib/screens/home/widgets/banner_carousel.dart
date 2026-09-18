@@ -19,7 +19,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
   int _currentPage = 0;
 
   final List<List<Color>> _gradients = [
-    [const Color(0xFF0E8388), const Color(0xFF2E4F4F)],
+    [const Color(0xFFE11D48), const Color(0xFF9F1239)],
     [const Color(0xFF144272), const Color(0xFF205295)],
     [const Color(0xFF2C74B3), const Color(0xFF0A4D68)],
     [const Color(0xFF4A0E4E), const Color(0xFF810CA8)],

@@ -166,7 +166,7 @@ class _EditBannerDialogState extends State<EditBannerDialog> {
                           ],
                           gradient: _uploadedImageUrl == null
                               ? const LinearGradient(
-                                  colors: [Color(0xFF0E8388), Color(0xFF2E4F4F)],
+                                  colors: [Color(0xFFE11D48), Color(0xFF9F1239)],
                                   begin: Alignment.topLeft,
                                   end: Alignment.bottomRight,
                                 )

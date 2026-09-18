@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../models/app_notification.dart';
@@ -167,8 +168,8 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             backgroundColor: Colors.white,
             selectedItemColor: AppColors.primary,
             unselectedItemColor: AppColors.textMuted,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 11),
-            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 11),
+            selectedLabelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: -0.1),
+            unselectedLabelStyle: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, fontSize: 10.5),
             elevation: 0,
             items: [
               const BottomNavigationBarItem(
@@ -195,13 +196,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 icon: Badge(
                   isLabelVisible: unreadCount > 0,
                   label: Text('$unreadCount'),
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: AppColors.primary,
                   child: const Icon(Icons.person_outline_rounded),
                 ),
                 activeIcon: Badge(
                   isLabelVisible: unreadCount > 0,
                   label: Text('$unreadCount'),
-                  backgroundColor: AppColors.accent,
+                  backgroundColor: AppColors.primary,
                   child: const Icon(Icons.person_rounded),
                 ),
                 label: 'Profile',
