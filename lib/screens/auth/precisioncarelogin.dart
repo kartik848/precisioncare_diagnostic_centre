@@ -9,7 +9,6 @@ import '../../providers/notification_provider.dart';
 import '../../widgets/custom_button.dart';
 import '../../widgets/custom_text_field.dart';
 import '../../widgets/motion_logo_widget.dart';
-import '../admin/admin_login_screen.dart';
 import '../home/main_navigation_screen.dart';
 import 'register_screen.dart';
 
@@ -208,130 +207,118 @@ class _PrecisionCareLoginScreenState extends State<PrecisionCareLoginScreen>
                 ),
                 child: SafeArea(
                   bottom: false,
-                  child: Stack(
+                  child: Column(
                     children: [
-                      // Top Right: Skip > Pill Button
-                      Positioned(
-                        top: 10,
-                        right: 18,
-                        child: FadeTransition(
-                          opacity: _headerFadeAnimation,
-                          child: InkWell(
-                            onTap: _skipToHome,
-                            borderRadius: BorderRadius.circular(24),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(24),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.12),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    'Skip',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w800,
+                      // Top Row: Skip > Button aligned to top right
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8, right: 18),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: FadeTransition(
+                            opacity: _headerFadeAnimation,
+                            child: InkWell(
+                              onTap: _skipToHome,
+                              borderRadius: BorderRadius.circular(24),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.12),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      'Skip',
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF1E293B),
+                                      ),
+                                    ),
+                                    SizedBox(width: 4),
+                                    Icon(
+                                      Icons.arrow_forward_ios_rounded,
+                                      size: 11,
                                       color: Color(0xFF1E293B),
                                     ),
-                                  ),
-                                  SizedBox(width: 4),
-                                  Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    size: 11,
-                                    color: Color(0xFF1E293B),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
                         ),
                       ),
 
-                      // Brand Logo & Tagline Header
-                      Positioned(
-                        top: 10,
-                        left: 20,
-                        right: 90,
-                        child: FadeTransition(
-                          opacity: _headerFadeAnimation,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              // Animated Motion Logo
-                              const MotionLogo(
-                                size: 42,
-                                showRipples: false,
-                                showShimmer: true,
-                                showFloating: true,
-                                showHeartbeat: true,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Text(
-                                          'PrecisionCare',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900,
-                                            color: Colors.white,
-                                            letterSpacing: -0.3,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 5),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.25),
-                                            borderRadius: BorderRadius.circular(5),
-                                          ),
-                                          child: const Text(
-                                            'LAB',
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 9,
-                                              fontWeight: FontWeight.w900,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                    const Text(
-                                      'Bringing care to health',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.white70,
-                                        letterSpacing: 0.1,
-                                      ),
-                                    ),
-                                  ],
+                      // Centered Brand Logo & Tagline Header
+                      FadeTransition(
+                        opacity: _headerFadeAnimation,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                // Animated Motion Logo
+                                const MotionLogo(
+                                  size: 38,
+                                  showRipples: false,
+                                  showShimmer: true,
+                                  showFloating: true,
+                                  showHeartbeat: true,
                                 ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'PrecisionCare',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w900,
+                                    color: Colors.white,
+                                    letterSpacing: -0.3,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.25),
+                                    borderRadius: BorderRadius.circular(5),
+                                  ),
+                                  child: const Text(
+                                    'LAB',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 3),
+                            const Text(
+                              'Bringing care to health',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white70,
+                                letterSpacing: 0.1,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
 
                       // 3D Team Graphic with Breathing Float Animation
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
+                      Expanded(
                         child: AnimatedBuilder(
                           animation: _floatAnimation,
                           builder: (context, child) {
@@ -340,8 +327,8 @@ class _PrecisionCareLoginScreenState extends State<PrecisionCareLoginScreen>
                               child: child,
                             );
                           },
-                          child: SizedBox(
-                            height: bannerHeight * 0.65,
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
                             child: Image.asset(
                               'assets/images/precisioncare_3d_team.png',
                               fit: BoxFit.contain,
@@ -534,40 +521,9 @@ class _PrecisionCareLoginScreenState extends State<PrecisionCareLoginScreen>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 18),
 
-                            // 5. Staff / Admin Portal Shortcut
-                            Center(
-                              child: InkWell(
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
-                                  );
-                                },
-                                borderRadius: BorderRadius.circular(8),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.admin_panel_settings_outlined, size: 15, color: Colors.grey.shade600),
-                                      const SizedBox(width: 5),
-                                      Text(
-                                        'Staff / Admin Portal',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-
-                            // 6. Security Guarantee Footer (Original Form)
+                            // Security Guarantee Footer (Original Form)
                             const Center(
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,

@@ -192,9 +192,8 @@ void main() {
       // Verify original Sign In button
       expect(find.text('Sign In to Health Portal'), findsOneWidget);
 
-      // Verify original Register & Staff links
+      // Verify original Register link
       expect(find.text('Create Patient Account'), findsOneWidget);
-      expect(find.text('Staff / Admin Portal'), findsOneWidget);
 
       // Verify SSL & HIPAA Guarantee
       expect(find.text('256-Bit SSL Encrypted & HIPAA Compliant Health Portal'), findsOneWidget);
