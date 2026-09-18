@@ -14,6 +14,7 @@ import 'providers/booking_provider.dart';
 import 'providers/report_provider.dart';
 import 'providers/notification_provider.dart';
 import 'screens/admin/admin_dashboard_screen.dart';
+import 'screens/admin/admin_login_screen.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
 import 'screens/home/main_navigation_screen.dart';
@@ -69,9 +70,49 @@ class PrecisionCareApp extends StatelessWidget {
         title: kIsWeb ? 'PrecisionCare - Admin Operations Portal' : 'PrecisionCare Diagnostic Centre',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: kIsWeb ? const AdminDashboardScreen() : const SplashScreen(),
+        home: kIsWeb ? const AdminAuthGate() : const SplashScreen(),
       ),
     );
+  }
+}
+
+class AdminAuthGate extends StatelessWidget {
+  const AdminAuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
+    if (authProvider.isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F172A),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Verifying Admin Session...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (authProvider.isAuthenticated && authProvider.isAdmin) {
+      return const AdminDashboardScreen();
+    }
+
+    return const AdminLoginScreen();
   }
 }
 
@@ -91,6 +132,9 @@ class AuthGate extends StatelessWidget {
     }
 
     if (authProvider.isAuthenticated) {
+      if (authProvider.isAdmin) {
+        return const AdminDashboardScreen();
+      }
       return const MainNavigationScreen();
     }
 

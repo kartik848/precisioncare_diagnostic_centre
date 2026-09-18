@@ -10,6 +10,7 @@ import '../../widgets/app_image_view.dart';
 import '../auth/login_screen.dart';
 import '../notifications/notification_center_screen.dart';
 import '../admin/admin_login_screen.dart';
+import '../admin/admin_dashboard_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -369,9 +370,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   // Admin & Staff Operations Portal Access
                   InkWell(
                     onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
-                      );
+                      final auth = context.read<AuthProvider>();
+                      if (auth.isAuthenticated && auth.isAdmin) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                        );
+                      } else {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                        );
+                      }
                     },
                     borderRadius: BorderRadius.circular(14),
                     child: Container(

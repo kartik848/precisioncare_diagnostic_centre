@@ -12,6 +12,7 @@ import 'providers/booking_provider.dart';
 import 'providers/report_provider.dart';
 import 'providers/notification_provider.dart';
 import 'screens/admin/admin_login_screen.dart';
+import 'screens/admin/admin_dashboard_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,8 +52,48 @@ class PrecisionCareAdminApp extends StatelessWidget {
         title: 'PrecisionCare Admin Portal',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
-        home: const AdminLoginScreen(),
+        home: const AdminAuthGate(),
       ),
     );
+  }
+}
+
+class AdminAuthGate extends StatelessWidget {
+  const AdminAuthGate({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+
+    if (authProvider.isLoading) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF0F172A),
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Verifying Admin Session...',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (authProvider.isAuthenticated && authProvider.isAdmin) {
+      return const AdminDashboardScreen();
+    }
+
+    return const AdminLoginScreen();
   }
 }

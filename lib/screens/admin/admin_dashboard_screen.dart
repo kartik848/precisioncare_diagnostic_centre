@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -8,6 +9,9 @@ import '../../models/promo_banner.dart';
 import '../../models/staff_model.dart';
 import '../../models/user_profile.dart';
 import '../../providers/admin_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../home/main_navigation_screen.dart';
+import 'admin_login_screen.dart';
 import '../../widgets/app_image_view.dart';
 import '../../widgets/empty_state.dart';
 import 'widgets/add_staff_dialog.dart';
@@ -103,6 +107,58 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   void _openEditBannerDialog(PromoBanner banner) {
     showDialog(context: context, builder: (_) => EditBannerDialog(banner: banner));
+  }
+
+  void _confirmSignOut(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.logout_rounded, color: AppColors.error),
+            SizedBox(width: 8),
+            Text('Sign Out', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to sign out from the PrecisionCare Admin Portal?',
+          style: TextStyle(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await context.read<AuthProvider>().signOut();
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Signed out from Admin Portal'),
+                    backgroundColor: AppColors.secondary,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                  (route) => false,
+                );
+              }
+            },
+            icon: const Icon(Icons.logout_rounded, size: 16),
+            label: const Text('Sign Out', style: TextStyle(fontWeight: FontWeight.w700)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _openPrescriptionViewerDialog({String? targetUserId, String? targetPatientName}) {
@@ -303,8 +359,108 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
+  Widget _buildUnauthorizedAccessView() {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F172A),
+      body: Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          margin: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.25),
+                blurRadius: 28,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFFF1F2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.lock_person_rounded, size: 48, color: AppColors.error),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Admin Authentication Required',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'You must be signed in with an authorized Administrator account to view and manage PrecisionCare diagnostic operations.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                      (route) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.login_rounded, size: 18, color: Colors.white),
+                  label: const Text(
+                    'Sign In as Admin',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.secondary,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+              if (!kIsWeb) ...[
+                const SizedBox(height: 12),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
+                      (route) => false,
+                    );
+                  },
+                  icon: const Icon(Icons.arrow_back_rounded, size: 16, color: AppColors.textSecondary),
+                  label: const Text(
+                    'Return to Patient App',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    if (!auth.isAuthenticated || !auth.isAdmin) {
+      return _buildUnauthorizedAccessView();
+    }
+
     final admin = context.watch<AdminProvider>();
 
     final pending = admin.pendingRequests;
@@ -379,6 +535,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   icon: const Icon(Icons.notification_add_rounded, color: AppColors.accent, size: 20),
                   tooltip: 'Push Patient Reminder',
                   onPressed: () => _openSendReminderDialog(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                  child: OutlinedButton.icon(
+                    onPressed: () => _confirmSignOut(context),
+                    icon: const Icon(Icons.logout_rounded, color: Color(0xFFFCA5A5), size: 14),
+                    label: const Text(
+                      'Logout',
+                      style: TextStyle(color: Color(0xFFFCA5A5), fontSize: 11, fontWeight: FontWeight.w700),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0x66FCA5A5)),
+                      backgroundColor: const Color(0x26EF4444),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -558,29 +731,75 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             ),
 
             // Bottom Sidebar Actions
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: const BoxDecoration(
-                border: Border(top: BorderSide(color: Color(0xFF1E293B))),
-              ),
-              child: const Row(
-                children: [
-                  CircleAvatar(
-                    radius: 12,
-                    backgroundColor: AppColors.primaryLight,
-                    child: Icon(Icons.shield_rounded, size: 14, color: AppColors.primary),
+            Builder(
+              builder: (ctx) {
+                final auth = ctx.watch<AuthProvider>();
+                final email = auth.user?.email.isNotEmpty == true ? auth.user!.email : 'admin@precisioncare.com';
+                final name = auth.user?.name.isNotEmpty == true ? auth.user!.name : 'Clinic Admin';
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF0B1120),
+                    border: Border(top: BorderSide(color: Color(0xFF1E293B))),
                   ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Administrator (Active Session)',
-                      style: TextStyle(color: Colors.white70, fontSize: 10.5, fontWeight: FontWeight.w600),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          const CircleAvatar(
+                            radius: 14,
+                            backgroundColor: Color(0xFF1E293B),
+                            child: Icon(Icons.shield_rounded, size: 16, color: AppColors.accent),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  name,
+                                  style: const TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w700),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  email,
+                                  style: const TextStyle(color: Colors.white54, fontSize: 9.5),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            if (isDrawer) Navigator.pop(context);
+                            _confirmSignOut(context);
+                          },
+                          icon: const Icon(Icons.logout_rounded, size: 14, color: Color(0xFFF87171)),
+                          label: const Text(
+                            'Logout Admin',
+                            style: TextStyle(color: Color(0xFFF87171), fontSize: 11.5, fontWeight: FontWeight.w700),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0x33F87171)),
+                            backgroundColor: const Color(0x1AF87171),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ],
         ),
@@ -762,6 +981,21 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.accent,
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                ),
+              ),
+              const SizedBox(width: 8),
+              OutlinedButton.icon(
+                onPressed: () => _confirmSignOut(context),
+                icon: const Icon(Icons.logout_rounded, size: 16, color: AppColors.error),
+                label: const Text(
+                  'Logout',
+                  style: TextStyle(fontSize: 12, color: AppColors.error, fontWeight: FontWeight.w700),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFFECDD3)),
+                  backgroundColor: const Color(0xFFFFF1F2),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                 ),
               ),
             ],
