@@ -9,8 +9,6 @@ import '../../services/imgbb_service.dart';
 import '../../widgets/app_image_view.dart';
 import '../auth/login_screen.dart';
 import '../notifications/notification_center_screen.dart';
-import '../admin/admin_login_screen.dart';
-import '../admin/admin_dashboard_screen.dart';
 import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -363,68 +361,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                       ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // Admin & Staff Operations Portal Access
-                  InkWell(
-                    onTap: () {
-                      final auth = context.read<AuthProvider>();
-                      if (auth.isAuthenticated && auth.isAdmin) {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
-                        );
-                      } else {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
-                        );
-                      }
-                    },
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF0F172A),
-                        borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.08),
-                            blurRadius: 10,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.admin_panel_settings_rounded, color: AppColors.accent, size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Admin & Staff Portal',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 13.5),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  'Manage categories, catalog, dispatches & staff',
-                                  style: TextStyle(color: Colors.white60, fontSize: 11),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 13),
-                        ],
-                      ),
                     ),
                   ),
                   const SizedBox(height: 16),

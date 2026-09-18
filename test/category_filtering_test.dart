@@ -321,6 +321,54 @@ void main() {
 
       expect(bloodTests.any((t) => t.id == 'test_xray_lumbar'), isFalse);
     });
+
+    test('DiagnosticService.fromMap auto-heals blood test accidentally tagged with cat_xray', () {
+      final corruptedMap = {
+        'title': 'In-House Complete Blood Test (CBC)',
+        'categoryId': 'cat_xray',
+        'categoryName': 'Digital X-Ray',
+        'iconType': 'blood',
+        'sampleType': 'Blood (EDTA Tube)',
+        'preparation': '10 hours fasting required',
+      };
+
+      final healed = DiagnosticService.fromMap(corruptedMap, 'corrupt_bt_1');
+      expect(healed.categoryId, 'cat_blood');
+      expect(healed.categoryName, 'Blood Tests');
+      expect(healed.iconType, 'blood');
+    });
+
+    test('DiagnosticService.fromMap auto-heals x-ray test with blood sampleType', () {
+      final corruptedXrayMap = {
+        'title': 'Digital Chest X-Ray PA View',
+        'categoryId': 'cat_xray',
+        'categoryName': 'Digital X-Ray',
+        'iconType': 'blood',
+        'sampleType': 'Blood (Serum)',
+        'preparation': '10-12 hours fasting required. Water intake allowed.',
+      };
+
+      final healed = DiagnosticService.fromMap(corruptedXrayMap, 'corrupt_xr_1');
+      expect(healed.categoryId, 'cat_xray');
+      expect(healed.categoryName, 'Digital X-Ray');
+      expect(healed.iconType, 'xray');
+      expect(healed.sampleType, 'Direct Digital Radiography (DR)');
+      expect(healed.preparation.contains('fasting'), isFalse);
+    });
+
+    test('CatalogProvider Digital X-Ray filter rejects any blood test even if categoryId is cat_xray', () {
+      final provider = CatalogProvider();
+      provider.setCategoryFilter('Digital X-Ray');
+
+      final results = provider.filteredServices;
+      for (final s in results) {
+        expect(s.title.toLowerCase().contains('blood'), isFalse);
+        expect(s.title.toLowerCase().contains('cbc'), isFalse);
+        expect(s.title.toLowerCase().contains('lipid'), isFalse);
+        expect(s.categoryId, isNot('cat_blood'));
+        expect(s.iconType, isNot('blood'));
+      }
+    });
   });
 }
 

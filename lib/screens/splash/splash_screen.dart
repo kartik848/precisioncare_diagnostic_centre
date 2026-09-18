@@ -9,7 +9,6 @@ import '../../providers/notification_provider.dart';
 import '../../widgets/motion_logo_widget.dart';
 import '../auth/login_screen.dart';
 import '../home/main_navigation_screen.dart';
-import '../admin/admin_dashboard_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -100,9 +99,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       }
 
       final Widget target = isAuthenticated
-          ? (authProvider.isAdmin
-              ? const AdminDashboardScreen()
-              : const MainNavigationScreen())
+          ? const MainNavigationScreen()
           : const LoginScreen();
 
       Navigator.of(context).pushReplacement(

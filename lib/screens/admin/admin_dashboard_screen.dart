@@ -10,7 +10,6 @@ import '../../models/staff_model.dart';
 import '../../models/user_profile.dart';
 import '../../providers/admin_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../home/main_navigation_screen.dart';
 import 'admin_login_screen.dart';
 import '../../widgets/app_image_view.dart';
 import '../../widgets/empty_state.dart';
@@ -431,22 +430,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   ),
                 ),
               ),
-              if (!kIsWeb) ...[
-                const SizedBox(height: 12),
-                TextButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const MainNavigationScreen()),
-                      (route) => false,
-                    );
-                  },
-                  icon: const Icon(Icons.arrow_back_rounded, size: 16, color: AppColors.textSecondary),
-                  label: const Text(
-                    'Return to Patient App',
-                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -1625,32 +1608,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           )
         else
           ...categories.map((category) {
-            final linkedTests = catalog.where((s) {
-              if (s.categoryId == category.id) return true;
-              if (s.categoryName.trim().toLowerCase() == category.name.trim().toLowerCase()) return true;
-              if (category.id == 'cat_xray') {
-                return s.iconType == 'xray' || s.title.toLowerCase().contains('x-ray') || s.title.toLowerCase().contains('xray');
-              }
-              if (category.id == 'cat_blood') {
-                return s.iconType == 'blood' || s.category == ServiceCategory.homeVisit;
-              }
-              if (category.id == 'cat_ecg') {
-                return s.iconType == 'ecg' || s.title.toLowerCase().contains('ecg') || s.title.toLowerCase().contains('stress');
-              }
-              if (category.id == 'cat_usg') {
-                return s.iconType == 'usg' || s.title.toLowerCase().contains('ultrasound');
-              }
-              if (category.id == 'cat_pft') {
-                return s.iconType == 'pft' || s.title.toLowerCase().contains('pft') || s.title.toLowerCase().contains('spirometry');
-              }
-              if (category.id == 'cat_physio') {
-                return s.iconType == 'physio' || s.category == ServiceCategory.physiotherapy;
-              }
-              if (category.id == 'cat_packages') {
-                return s.category == ServiceCategory.healthPackage || s.includedTests.length > 5;
-              }
-              return false;
-            }).toList();
+            final linkedTests = catalog.where((s) => _testBelongsToCategory(s, category)).toList();
 
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -1878,44 +1836,117 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     );
   }
 
+  IconData _getServiceIcon(String iconType) {
+    switch (iconType) {
+      case 'blood':
+        return Icons.water_drop_rounded;
+      case 'xray':
+        return Icons.camera_enhance_rounded;
+      case 'ecg':
+        return Icons.monitor_heart_rounded;
+      case 'stress_test':
+        return Icons.directions_run_rounded;
+      case 'usg':
+        return Icons.waves_rounded;
+      case 'pft':
+        return Icons.air_rounded;
+      case 'physio':
+        return Icons.accessibility_new_rounded;
+      case 'package':
+        return Icons.inventory_2_outlined;
+      default:
+        return Icons.medical_services_rounded;
+    }
+  }
+
+  Color _getServiceBadgeColor(String iconType) {
+    switch (iconType) {
+      case 'blood':
+        return AppColors.bloodTestBadge;
+      case 'xray':
+        return AppColors.xrayBadge;
+      case 'ecg':
+        return AppColors.ecgBadge;
+      case 'stress_test':
+        return AppColors.stressTestBadge;
+      case 'usg':
+        return const Color(0xFF0891B2);
+      case 'pft':
+        return AppColors.pftBadge;
+      case 'physio':
+        return AppColors.physioBadge;
+      case 'package':
+        return const Color(0xFFD97706);
+      default:
+        return AppColors.primary;
+    }
+  }
+
   // Helper to determine if a test belongs to a specific category
   bool _testBelongsToCategory(DiagnosticService test, DiagnosticCategory cat) {
-    if (test.categoryId != null && test.categoryId == cat.id) return true;
-
     final catLower = cat.name.trim().toLowerCase();
     final catIdLower = cat.id.toLowerCase();
+    final titleLower = test.title.toLowerCase();
+    final testCatNameLower = test.categoryName.trim().toLowerCase();
 
-    // 1. Digital X-Ray - STRICT
+    // 1. Digital X-Ray - STRICT: Exclude blood and other non-xray modalities
     if (catIdLower == 'cat_xray' || catLower.contains('x-ray') || catLower.contains('xray')) {
-      if (test.categoryId == 'cat_blood' || test.categoryId == 'cat_ecg' || test.categoryId == 'cat_usg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio' || test.categoryId == 'cat_packages') {
+      if (test.categoryId == 'cat_blood' ||
+          test.iconType == 'blood' ||
+          testCatNameLower.contains('blood') ||
+          titleLower.contains('blood') ||
+          titleLower.contains('cbc') ||
+          titleLower.contains('lipid') ||
+          titleLower.contains('thyroid') ||
+          titleLower.contains('glucose') ||
+          titleLower.contains('sugar') ||
+          titleLower.contains('diabetes') ||
+          titleLower.contains('hemoglobin') ||
+          titleLower.contains('hba1c') ||
+          titleLower.contains('serum')) {
         return false;
       }
+      if (test.categoryId == 'cat_ecg' || test.iconType == 'ecg' || titleLower.contains('ecg') || testCatNameLower.contains('ecg')) return false;
+      if (test.categoryId == 'cat_usg' || test.iconType == 'usg' || titleLower.contains('ultrasound') || testCatNameLower.contains('ultrasound')) return false;
+      if (test.categoryId == 'cat_pft' || test.iconType == 'pft' || titleLower.contains('pft') || testCatNameLower.contains('pft')) return false;
+      if (test.categoryId == 'cat_physio' || test.iconType == 'physio' || test.category == ServiceCategory.physiotherapy) return false;
+      if (test.categoryId == 'cat_packages' || test.category == ServiceCategory.healthPackage) return false;
+
       return test.categoryId == 'cat_xray' ||
           test.iconType == 'xray' ||
-          test.categoryName.toLowerCase().contains('x-ray') ||
-          test.categoryName.toLowerCase().contains('xray') ||
-          test.title.toLowerCase().contains('x-ray') ||
-          test.title.toLowerCase().contains('xray');
+          testCatNameLower.contains('x-ray') ||
+          testCatNameLower.contains('xray') ||
+          titleLower.contains('x-ray') ||
+          titleLower.contains('xray') ||
+          titleLower.contains('radiograph');
     }
 
-    // 2. Blood Tests - STRICT
+    // 2. Blood Tests - STRICT: Exclude X-Ray and other non-blood modalities
     if (catIdLower == 'cat_blood' || catLower.contains('blood')) {
-      if (test.categoryId == 'cat_xray' || test.categoryId == 'cat_ecg' || test.categoryId == 'cat_usg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio' || test.categoryId == 'cat_packages') {
+      final isXray = test.iconType == 'xray' ||
+          test.categoryId == 'cat_xray' ||
+          testCatNameLower.contains('x-ray') ||
+          testCatNameLower.contains('xray') ||
+          titleLower.contains('x-ray') ||
+          titleLower.contains('xray') ||
+          titleLower.contains('radiograph');
+      if (isXray || test.categoryId == 'cat_packages' || test.category == ServiceCategory.healthPackage) return false;
+      if (test.categoryId == 'cat_ecg' || test.categoryId == 'cat_usg' || test.categoryId == 'cat_pft' || test.categoryId == 'cat_physio') {
         return false;
       }
-      final isXray = test.iconType == 'xray' ||
-          test.title.toLowerCase().contains('x-ray') ||
-          test.title.toLowerCase().contains('xray');
-      if (isXray || test.categoryId == 'cat_packages' || test.category == ServiceCategory.healthPackage) return false;
       return test.categoryId == 'cat_blood' ||
           test.iconType == 'blood' ||
-          test.categoryName.toLowerCase().contains('blood') ||
-          test.title.toLowerCase().contains('blood') ||
-          test.title.toLowerCase().contains('cbc') ||
-          test.title.toLowerCase().contains('lipid') ||
-          test.title.toLowerCase().contains('thyroid') ||
-          test.title.toLowerCase().contains('diabetes');
+          testCatNameLower.contains('blood') ||
+          titleLower.contains('blood') ||
+          titleLower.contains('cbc') ||
+          titleLower.contains('lipid') ||
+          titleLower.contains('thyroid') ||
+          titleLower.contains('diabetes') ||
+          titleLower.contains('sugar') ||
+          titleLower.contains('glucose');
     }
+
+    if (test.categoryId != null && test.categoryId == cat.id) return true;
 
     // 3. ECG & Cardiology - STRICT
     if (catIdLower == 'cat_ecg' || catLower.contains('ecg') || catLower.contains('cardio') || catLower.contains('heart')) {
@@ -2554,10 +2585,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.08),
+                  color: _getServiceBadgeColor(test.iconType).withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.science_outlined, color: AppColors.primary, size: 24),
+                child: Icon(_getServiceIcon(test.iconType), color: _getServiceBadgeColor(test.iconType), size: 22),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -2575,12 +2606,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                           decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
+                            color: _getServiceBadgeColor(test.iconType).withOpacity(0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
                             test.categoryName,
-                            style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: AppColors.primaryDark),
+                            style: TextStyle(fontSize: 9.5, fontWeight: FontWeight.w800, color: _getServiceBadgeColor(test.iconType)),
                           ),
                         ),
                       ],

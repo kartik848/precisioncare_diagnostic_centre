@@ -132,9 +132,6 @@ class AuthGate extends StatelessWidget {
     }
 
     if (authProvider.isAuthenticated) {
-      if (authProvider.isAdmin) {
-        return const AdminDashboardScreen();
-      }
       return const MainNavigationScreen();
     }
 

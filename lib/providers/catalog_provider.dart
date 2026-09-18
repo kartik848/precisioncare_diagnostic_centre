@@ -121,38 +121,75 @@ class CatalogProvider with ChangeNotifier {
         return service.isHomeVisitAvailable;
       }
       if (_selectedCategoryFilter == 'In-House Tests' || _selectedCategoryFilter == 'In-House') {
-        return service.isInHouseAvailable && service.category == ServiceCategory.inHouseDiagnostic;
+        return service.isInHouseAvailable;
       }
 
       final filterLower = _selectedCategoryFilter.trim().toLowerCase();
 
       // 1. Digital X-Ray filter - STRICT: ONLY X-Ray tests!
       if (filterLower.contains('x-ray') || filterLower.contains('xray')) {
+        final titleLower = service.title.toLowerCase();
+        final catLower = service.categoryName.toLowerCase();
+
+        // Strict exclusions: Blood, ECG, USG, PFT, Physio, Packages
+        if (service.categoryId == 'cat_blood' ||
+            service.iconType == 'blood' ||
+            catLower.contains('blood') ||
+            titleLower.contains('blood') ||
+            titleLower.contains('cbc') ||
+            titleLower.contains('lipid') ||
+            titleLower.contains('thyroid') ||
+            titleLower.contains('glucose') ||
+            titleLower.contains('sugar') ||
+            titleLower.contains('diabetes') ||
+            titleLower.contains('hemoglobin') ||
+            titleLower.contains('hba1c') ||
+            titleLower.contains('serum')) {
+          return false;
+        }
+        if (service.categoryId == 'cat_ecg' || service.iconType == 'ecg' || titleLower.contains('ecg') || catLower.contains('ecg')) return false;
+        if (service.categoryId == 'cat_usg' || service.iconType == 'usg' || titleLower.contains('ultrasound') || catLower.contains('ultrasound')) return false;
+        if (service.categoryId == 'cat_pft' || service.iconType == 'pft' || titleLower.contains('pft') || catLower.contains('pft')) return false;
+        if (service.categoryId == 'cat_physio' || service.iconType == 'physio' || service.category == ServiceCategory.physiotherapy) return false;
+        if (service.categoryId == 'cat_packages' || service.category == ServiceCategory.healthPackage) return false;
+
         return service.categoryId == 'cat_xray' ||
             service.iconType == 'xray' ||
-            service.categoryName.toLowerCase().contains('x-ray') ||
-            service.categoryName.toLowerCase().contains('xray') ||
-            service.title.toLowerCase().contains('x-ray') ||
-            service.title.toLowerCase().contains('xray');
+            catLower.contains('x-ray') ||
+            catLower.contains('xray') ||
+            titleLower.contains('x-ray') ||
+            titleLower.contains('xray') ||
+            titleLower.contains('radiograph');
       }
 
       // 2. Blood Tests filter - STRICT: ONLY Blood tests!
       if (filterLower.contains('blood')) {
+        final titleLower = service.title.toLowerCase();
+        final catLower = service.categoryName.toLowerCase();
         final isXray = service.iconType == 'xray' ||
-            service.title.toLowerCase().contains('x-ray') ||
-            service.title.toLowerCase().contains('xray');
-        final isPhysio = service.category == ServiceCategory.physiotherapy;
+            service.categoryId == 'cat_xray' ||
+            titleLower.contains('x-ray') ||
+            titleLower.contains('xray') ||
+            titleLower.contains('radiograph') ||
+            catLower.contains('x-ray') ||
+            catLower.contains('xray');
+        final isPhysio = service.category == ServiceCategory.physiotherapy || service.categoryId == 'cat_physio';
         final isPackage = service.categoryId == 'cat_packages' || service.category == ServiceCategory.healthPackage;
-        if (isXray || isPhysio || isPackage) return false;
+        final isEcg = service.categoryId == 'cat_ecg' || service.iconType == 'ecg';
+        final isUsg = service.categoryId == 'cat_usg' || service.iconType == 'usg';
+        final isPft = service.categoryId == 'cat_pft' || service.iconType == 'pft';
+        if (isXray || isPhysio || isPackage || isEcg || isUsg || isPft) return false;
 
         return service.categoryId == 'cat_blood' ||
             service.iconType == 'blood' ||
-            service.categoryName.toLowerCase().contains('blood') ||
-            service.title.toLowerCase().contains('blood') ||
-            service.title.toLowerCase().contains('cbc') ||
-            service.title.toLowerCase().contains('lipid') ||
-            service.title.toLowerCase().contains('thyroid') ||
-            service.title.toLowerCase().contains('diabetes');
+            catLower.contains('blood') ||
+            titleLower.contains('blood') ||
+            titleLower.contains('cbc') ||
+            titleLower.contains('lipid') ||
+            titleLower.contains('thyroid') ||
+            titleLower.contains('diabetes') ||
+            titleLower.contains('sugar') ||
+            titleLower.contains('glucose');
       }
 
       // 3. ECG & Cardiology - STRICT: ONLY ECG / Cardio tests!
